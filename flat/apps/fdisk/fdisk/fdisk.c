@@ -108,11 +108,13 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
     bcopy((char*)b->data[i], physicalBlock, diskblocksize);
     if ((val = disk_write_block(fsblocknum*4+j, physicalBlock)) != diskblocksize) {
       total += val;
+      Printf("fdisk(%d): ERROR FdiskWriteFileSystemBlock: Tried to write %d bytes, instead wrote %d bytes. Returning with total bytes read %d.\n", getpid(), diskblocksize, val, total);
       return total;
     }
     total += val;
     j++;
   }
+  Printf("fdisk(%d): FdiskWriteFileSystemBlock: Successfully wrote %d bytes.\n", getpid(), total);
   return total;
 }
 
