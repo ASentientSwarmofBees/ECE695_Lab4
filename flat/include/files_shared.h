@@ -1,7 +1,11 @@
 #ifndef __FILES_SHARED__
 #define __FILES_SHARED__
 
-#include "dfs_shared.h"
+// Forward-declare dfs_inode to avoid circular include between
+// files_shared.h and dfs_shared.h. dfs_shared.h includes this
+// header to pick up FILE_MAX_FILENAME_LENGTH, so this header
+// must not include dfs_shared.h.
+typedef struct dfs_inode dfs_inode;
 
 #define FILE_SEEK_SET 1
 #define FILE_SEEK_END 2
