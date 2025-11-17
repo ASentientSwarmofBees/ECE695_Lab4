@@ -1,13 +1,13 @@
 #ifndef __FILES_SHARED__
 #define __FILES_SHARED__
 
-#include "dfs_shared.h"
-
 #define FILE_SEEK_SET 1
 #define FILE_SEEK_END 2
 #define FILE_SEEK_CUR 3
 
 #define FILE_MAX_FILENAME_LENGTH 72
+
+#include "dfs_shared.h"
 
 #define FILE_MAX_READWRITE_BYTES 4096 //TODO: this was commented out. does it need to be changed?
 
