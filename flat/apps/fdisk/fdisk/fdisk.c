@@ -120,5 +120,5 @@ int FdiskWriteZerosToFileSystemBlock(uint32 fsblocknum) {
   dfs_block *zeroedBlock;
   bzero((char*)zeroedBlock, sb.fileSystemBlockSize);
 
-  return FdiskWriteBlock(fsblocknum, zeroedBlock);
+  return FdiskWriteFileSystemBlock(fsblocknum, zeroedBlock);
 }
