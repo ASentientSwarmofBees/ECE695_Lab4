@@ -1,11 +1,10 @@
 #ifndef __FILES_SHARED__
 #define __FILES_SHARED__
 
-// Forward-declare dfs_inode to avoid circular include between
-// files_shared.h and dfs_shared.h. dfs_shared.h includes this
-// header to pick up FILE_MAX_FILENAME_LENGTH, so this header
-// must not include dfs_shared.h.
-typedef struct dfs_inode dfs_inode;
+// Forward-declare struct tag for dfs_inode to avoid typedef redefinition
+// and circular includes. Use `struct dfs_inode *` in this header so
+// we don't require the full typedef from dfs_shared.h here.
+struct dfs_inode;
 
 #define FILE_SEEK_SET 1
 #define FILE_SEEK_END 2
@@ -19,7 +18,7 @@ typedef struct file_descriptor {
   // STUDENT: put file descriptor info here
   uint32 inUse; //an in use indicator to tell if the descriptor is free or in use. Boolean.
   char fileName[FILE_MAX_FILENAME_LENGTH]; //the filename, which is just a string.
-  dfs_inode *inode; //inode, which this file-descriptor corresponds to. TODO: should this be a pointer?
+  struct dfs_inode *inode; //inode, which this file-descriptor corresponds to. TODO: should this be a pointer?
   uint32 eof; //eof: Indicator if the End-of-file is reached; useful for read operations. TODO: should be a boolean?
   char mode; //mode: set while opening the file. Possible values: "r", "w" 
   uint32 currentPosition; //current position: Current position in the file. block num or something?
