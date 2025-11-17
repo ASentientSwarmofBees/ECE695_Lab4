@@ -21,6 +21,7 @@ static inline uint32 invert(uint32 n) { return n ^ negativeone; }
 // Some skeletons are provided. You can implement additional functions.
 
 //TODO update the superblock copy whenever you change the superblock? does that include all of these changes to superblock valid?
+//yes it does.
 
 ///////////////////////////////////////////////////////////////////
 // Non-inode functions first
@@ -68,11 +69,14 @@ int DfsOpenFileSystem() {
 // filesystem in memory already, and the filesystem cannot be valid 
 // until we read the superblock. Also, we don't know the block size 
 // until we read the superblock, either.
-    disk_block block;
-    DiskReadBlock(1, &block); //Superblock is always at physical block #1
+    disk_block block[4];
+    DiskReadBlock(4, &block[0]); //Superblock is always at physical block #4
+    DiskReadBlock(5, &block[1]);
+    DiskReadBlock(6, &block[2]);
+    DiskReadBlock(7, &block[3]);
 
 // Copy the data from the block we just read into the superblock in memory
-    bcopy(&block, &sb, 1);
+    bcopy(&block, &sb, sb.fileSystemBlockSize);
 
 // All other blocks are sized by virtual block size:
 // Read inodes
@@ -93,7 +97,7 @@ int DfsOpenFileSystem() {
 // Change superblock to be invalid, write back to disk, then change 
 // it back to be valid in memory
     DfsInvalidate();
-    DiskWriteBlock(1, &sb);
+    DiskWriteBlock(4, &sb);
     sb.fileSystemValid = 1;
 
     return DFS_SUCCESS;
@@ -107,8 +111,8 @@ int DfsOpenFileSystem() {
 //-------------------------------------------------------------------
 
 int DfsCloseFileSystem() {
-
-
+    //Todo
+    return 0;
 }
 
 
