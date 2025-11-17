@@ -2,6 +2,7 @@
 #include "misc.h"
 
 #include "fdisk.h"
+#include "disk.h"
 
 //TODO: look at dfs.c where i defined these?
 dfs_superblock sb;
