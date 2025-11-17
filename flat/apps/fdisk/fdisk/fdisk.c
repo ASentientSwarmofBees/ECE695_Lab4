@@ -52,11 +52,10 @@ void main (int argc, char *argv[])
   }
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
   sb.fileSystemValid = 1;
-  // boot record is all zeros in the first physical block, and superblock structure goes into the second physical block
-  // Uh, shouldn't boot record be in first FILE system block (physical blocks 0-3) and superblock in second FILE system block (physical blocks 4-7)
+  // boot record is all zeros in the first FILE system block (physical blocks 0-3), and superblock structure goes into the second FILE system block (physical blocks 4-7)
   FdiskWriteZerosToFileSystemBlock(0);
-  bcopy(4, &sb, sb.fileSystemBlockSize); //physical block 4 is the first block of the superblock
-  bcopy(262140, &sb, sb.fileSystemBlockSize); //copy the superblock also to file system block 65535, where the copy of the superblock goes
+  FdiskWriteBlock(4, &sb); //physical block 4 is the first block of the superblock
+  FdiskWriteBlock(262140, &sb); //copy the superblock also to file system block 65535, where the copy of the superblock goes
   Printf("fdisk (%d): Formatted DFS disk for %d bytes.\n", getpid(), disksize);
 }
 
