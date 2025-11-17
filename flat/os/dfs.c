@@ -90,8 +90,8 @@ int DfsOpenFileSystem() {
 // Blocks are 256 bytes, each inode is 128 bytes
     for (i = 0; i < sb.numberInodes/2; i++) {
         DiskReadBlock(sb.inodesStartingBlockNumber+i, block); //Blocks 2 to 33, inclusive: Inode array.
-        bcopy(&block[0].data[0], &inodes[2*i], 128);
-        bcopy(&block[0].data[128], &inodes[2*i+1], 128);
+        bcopy(&block[0].data[0], (char*)inodes[2*i], 128);
+        bcopy(&block[0].data[128], (char*)&inodes[2*i+1], 128);
     }
 // Read free block vector
 //TODO what would this for loop iterate until? 65536-42 is scuffed. Do i need to read the whole thing?
