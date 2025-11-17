@@ -14,6 +14,7 @@ int disksize = 0;      // (i.e. fewer traps to OS to get the same number)
 int FdiskWriteFileSystemBlock(uint32 blocknum, dfs_block *b); //You can use your own function. This function 
 //calls disk_write_block() to write physical blocks to disk
 int FdiskWriteZerosToFileSystemBlock(uint32 blocknum);
+void PrintPhysicalBlock(char* b);
 
 void main (int argc, char *argv[])
 {
@@ -56,7 +57,7 @@ void main (int argc, char *argv[])
   sb.freeBlockVectorStartingBlockNumber = FDISK_FBV_BLOCK_START;
   sb.numFBVBlocks = 8;
   //Setting up FBV 0, which should mark that fs blocks 0-41 are in use
-  for (i = 0; i < 128; i++) {
+  for (i = 0; i < 1024; i++) {
     if (i <= 4) { //fs blocks 0-8, 9-15, 16-23, 24-31, 32-39
       block->data[i] = 0xFF;
     }
@@ -75,8 +76,8 @@ void main (int argc, char *argv[])
     FdiskWriteZerosToFileSystemBlock(FDISK_FBV_BLOCK_START+i);
   }
   //Prepare FBV block 7, marking that fs block 65535 is in use (superblock backup)
-  for (i = 0; i < 128; i++) {
-    if (i == 127) {
+  for (i = 0; i < 1024; i++) {
+    if (i == 1023) {
       block->data[i] = 0x80;
     }
     else {
@@ -108,6 +109,7 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
   //meanwhile, j is used to count 0, 1, 2, 3.
   for (i = 0; i < sb.fileSystemBlockSize; i += diskblocksize) {
     bcopy((char*)b->data[i], physicalBlock, diskblocksize);
+    PrintPhysicalBlock(physicalBlock);
     if ((val = disk_write_block(fsblocknum*4+j, physicalBlock)) != diskblocksize) {
       total += val;
       Printf("fdisk(%d): ERROR FdiskWriteFileSystemBlock: Tried to write %d bytes, instead wrote %d bytes. Returning with total bytes read %d.\n", getpid(), diskblocksize, val, total);
@@ -125,4 +127,13 @@ int FdiskWriteZerosToFileSystemBlock(uint32 fsblocknum) {
   bzero((char*)zeroedBlock, sb.fileSystemBlockSize);
 
   return FdiskWriteFileSystemBlock(fsblocknum, zeroedBlock);
+}
+
+void PrintPhysicalBlock(char* b) {
+  int i;
+  Printf("Printing block: ");
+  for (i = 0; i < disk_blocksize; i++) {
+    Printf(b[i]);
+  }
+  Printf("\n");
 }
