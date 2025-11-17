@@ -68,8 +68,8 @@ void FdiskWriteZerosToFileSystemBlock(uint32 blocknum) {
   char* zeroedBlock;
   bzero(zeroedBlock, diskblocksize);
 
-  FdiskWriteblock(blocknum*4, zeroedBlock);
-  FdiskWriteblock(blocknum*4+1, zeroedBlock);
-  FdiskWriteblock(blocknum*4+2, zeroedBlock);
-  FdiskWriteblock(blocknum*4+3, zeroedBlock);
+  FdiskWriteBlock(blocknum*4, zeroedBlock);
+  FdiskWriteBlock(blocknum*4+1, zeroedBlock);
+  FdiskWriteBlock(blocknum*4+2, zeroedBlock);
+  FdiskWriteBlock(blocknum*4+3, zeroedBlock);
 }
