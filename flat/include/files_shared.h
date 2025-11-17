@@ -7,8 +7,6 @@
 
 #define FILE_MAX_FILENAME_LENGTH 72
 
-#include "dfs_shared.h"
-
 #define FILE_MAX_READWRITE_BYTES 4096 //TODO: this was commented out. does it need to be changed?
 
 typedef struct file_descriptor {
