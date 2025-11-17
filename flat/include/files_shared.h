@@ -11,6 +11,13 @@
 
 typedef struct file_descriptor {
   // STUDENT: put file descriptor info here
+  uint32 inUse; //an in use indicator to tell if the descriptor is free or in use. Boolean.
+  char fileName[100]; //the filename, which is just a string
+  dfs_inode inode; //inode, which this file-descriptor corresponds to. TODO: should this be a pointer?
+  uint32 eof; //eof: Indicator if the End-of-file is reached; useful for read operations. TODO: should be a boolean?
+  char mode; //mode: set while opening the file. Possible values: "r", "w" 
+  uint32 currentPosition; //current position: Current position in the file. block num or something?
+  uint32 processID; //Process id: Process that opened the file. No other process can do any operations
 } file_descriptor;
 
 #define FILE_FAIL -1

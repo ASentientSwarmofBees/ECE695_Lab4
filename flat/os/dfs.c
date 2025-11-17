@@ -6,9 +6,10 @@
 #include "dfs.h"
 #include "synch.h"
 
-//static dfs_inode inodes[/*specify size*/ ]; // all inodes
-//static dfs_superblock sb; // superblock
-//static uint32 fbv[/*specify size*/]; // Free block vector
+static dfs_inode inodes[256]; // all inodes
+static dfs_superblock sb; // superblock
+static uint32 fbv[65536]; // Free block vector. fbv size = file system size / file system block size
+//DFS_MAX_FILESYSTEM_SIZE / DFS_BLOCKSIZE = 0x4000000 / 1024 = 65536
 
 static uint32 negativeone = 0xFFFFFFFF;
 static inline uint32 invert(uint32 n) { return n ^ negativeone; }
@@ -18,6 +19,8 @@ static inline uint32 invert(uint32 n) { return n ^ negativeone; }
 
 // STUDENT: put your file system level functions below.
 // Some skeletons are provided. You can implement additional functions.
+
+//TODO update the superblock copy whenever you change the superblock? does that include all of these changes to superblock valid?
 
 ///////////////////////////////////////////////////////////////////
 // Non-inode functions first
@@ -31,11 +34,12 @@ static inline uint32 invert(uint32 n) { return n ^ negativeone; }
 void DfsModuleInit() {
 // You essentially set the file system as invalid and then open 
 // using DfsOpenFileSystem().
-
+    DfsInvalidate();
+    DfsOpenFileSystem();
 }
 
 //-----------------------------------------------------------------
-// DfsInavlidate marks the current version of the filesystem in
+// DfsInvalidate marks the current version of the filesystem in
 // memory as invalid.  This is really only useful when formatting
 // the disk, to prevent the current memory version from overwriting
 // what you already have on the disk when the OS exits.
@@ -44,7 +48,7 @@ void DfsModuleInit() {
 void DfsInvalidate() {
 // This is just a one-line function which sets the valid bit of the 
 // superblock to 0.
-
+    sb.fileSystemValid = 0;
 }
 
 //-------------------------------------------------------------------
@@ -56,21 +60,43 @@ void DfsInvalidate() {
 int DfsOpenFileSystem() {
 //Basic steps:
 // Check that filesystem is not already open
-
+    if(sb.fileSystemValid == 1) {
+        return DFS_FAIL;
+    }
 // Read superblock from disk.  Note this is using the disk read rather 
 // than the DFS read function because the DFS read requires a valid 
 // filesystem in memory already, and the filesystem cannot be valid 
 // until we read the superblock. Also, we don't know the block size 
 // until we read the superblock, either.
+    disk_block block;
+    DiskReadBlock(1, &block); //Superblock is always at physical block #1
 
 // Copy the data from the block we just read into the superblock in memory
+    bcopy(&block, &sb, 1);
 
 // All other blocks are sized by virtual block size:
 // Read inodes
+// Blocks are 256 bytes, each inode is 128 bytes
+    for (int i = 0; i < sb.numberInodes/2; i++) {
+        DiskReadBlock(sb.inodesStartingBlockNumber+i, &block); //Blocks 2 to 33, inclusive: Inode array.
+        bcopy(&block.data[0], &inodes[2*i], 128);
+        bcopy(&block.data[128], &inodes[2*i+1], 128);
+    }
 // Read free block vector
+//TODO what would this for loop iterate until? 65536-42 is scuffed. Do i need to read the whole thing?
+    for (int i = 0; i < (65534-42)/256; i++) {
+        DiskReadBlock(sb.freeBlockVectorStartingBlockNumber+i, &block);
+        //each block is 256 bytes
+        bcopy(&block.data, &fbv[i*64]); //this is so scuffed but it'd be something like this
+    }
+
 // Change superblock to be invalid, write back to disk, then change 
 // it back to be valid in memory
+    DfsInvalidate();
+    DiskWriteBlock(1, &sb);
+    sb.fileSystemValid = 1;
 
+    return DFS_SUCCESS;
 }
 
 
