@@ -61,7 +61,7 @@ void main (int argc, char *argv[])
 
 void FdiskWriteBlock(uint32 blocknum, dfs_block *b) {
   // STUDENT: put your code here
-  disk_write_block(blocknum, b);
+  disk_write_block(blocknum, (char*)b);
 }
 
 void FdiskWriteZerosToFileSystemBlock(uint32 blocknum) {
