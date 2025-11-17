@@ -83,7 +83,9 @@ int DfsOpenFileSystem() {
     DiskReadBlock(7, &block[3]);
 
 // Copy the data from the block we just read into the superblock in memory
-    bcopy(&block, &sb, sb.fileSystemBlockSize);
+    char* blockPtr = &block;
+    char* sbPtr = &sb;
+    bcopy(blockPtr, sbPtr, sb.fileSystemBlockSize);
 
 // All other blocks are sized by virtual block size:
 // Read inodes
