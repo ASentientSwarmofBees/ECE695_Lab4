@@ -11,8 +11,9 @@ dfs_superblock sb;
 int diskblocksize = 0; // These are global in order to speed things up
 int disksize = 0;      // (i.e. fewer traps to OS to get the same number)
 
-int FdiskWriteBlock(uint32 blocknum, dfs_block *b); //You can use your own function. This function 
+void FdiskWriteBlock(uint32 blocknum, dfs_block *b); //You can use your own function. This function 
 //calls disk_write_block() to write physical blocks to disk
+void FdiskWriteZerosToFileSystemBlock(uint32 blocknum);
 
 void main (int argc, char *argv[])
 {
@@ -59,12 +60,12 @@ void main (int argc, char *argv[])
   Printf("fdisk (%d): Formatted DFS disk for %d bytes.\n", getpid(), disksize);
 }
 
-int FdiskWriteBlock(uint32 blocknum, dfs_block *b) {
+void FdiskWriteBlock(uint32 blocknum, dfs_block *b) {
   // STUDENT: put your code here
   disk_write_block(blocknum, b);
 }
 
-int FdiskWriteZerosToFileSystemBlock(uint32 blocknum) {
+void FdiskWriteZerosToFileSystemBlock(uint32 blocknum) {
   char* zeroedBlock;
   bzero(zeroedBlock, diskblocksize);
 
