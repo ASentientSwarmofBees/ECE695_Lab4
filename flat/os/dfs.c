@@ -102,7 +102,7 @@ int DfsOpenFileSystem() {
         DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+2, &blockArray[2]);
         DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+3, &blockArray[3]);
         //each file system block is 1024 bytes, so 256 uint32s
-        bcopy((char*)blockArray, (char*)&fbv[i*256], sb.fileSystemBlockSize);
+        bcopy((char*)blockArray, (char*)&fbv[i*256], sb.fileSystemBlockSize); //TODO INCONSISTENCY IN WHETHER OR NOT IM ADDRESSING AAAAAAAAA
     }
 
 // Change superblock to be invalid, write back to disk, then change 

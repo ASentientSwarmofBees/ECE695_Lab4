@@ -105,7 +105,7 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
   //This should run 4 times, at data indices 0, 256, 512, and 768, to break the fs block into four physical blocks
   //meanwhile, j is used to count 0, 1, 2, 3.
   for (i = 0; i < sb.fileSystemBlockSize; i += diskblocksize) {
-    bcopy(b->data[i], physicalBlock, diskblocksize);
+    bcopy((char*)b->data[i], physicalBlock, diskblocksize);
     if ((val = disk_write_block(fsblocknum*4+j, physicalBlock)) != diskblocksize) {
       total += val;
       return total;
@@ -118,7 +118,7 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
 
 int FdiskWriteZerosToFileSystemBlock(uint32 fsblocknum) {
   dfs_block *zeroedBlock;
-  bzero(zeroedBlock, sb.fileSystemBlockSize);
+  bzero((char*)zeroedBlock, sb.fileSystemBlockSize);
 
-  FdiskWriteBlock(fsblocknum, zeroedBlock);
+  return FdiskWriteBlock(fsblocknum, zeroedBlock);
 }
