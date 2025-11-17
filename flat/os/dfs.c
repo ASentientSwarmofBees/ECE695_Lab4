@@ -63,6 +63,10 @@ void DfsInvalidate() {
 //-------------------------------------------------------------------
 
 int DfsOpenFileSystem() {
+    disk_block block[4];
+    int i;
+
+
 //Basic steps:
 // Check that filesystem is not already open
     if(sb.fileSystemValid == 1) {
@@ -73,7 +77,6 @@ int DfsOpenFileSystem() {
 // filesystem in memory already, and the filesystem cannot be valid 
 // until we read the superblock. Also, we don't know the block size 
 // until we read the superblock, either.
-    disk_block block[4];
     DiskReadBlock(4, &block[0]); //Superblock is always at physical block #4
     DiskReadBlock(5, &block[1]);
     DiskReadBlock(6, &block[2]);
@@ -85,14 +88,14 @@ int DfsOpenFileSystem() {
 // All other blocks are sized by virtual block size:
 // Read inodes
 // Blocks are 256 bytes, each inode is 128 bytes
-    for (int i = 0; i < sb.numberInodes/2; i++) {
+    for (i = 0; i < sb.numberInodes/2; i++) {
         DiskReadBlock(sb.inodesStartingBlockNumber+i, &block); //Blocks 2 to 33, inclusive: Inode array.
         bcopy(&block.data[0], &inodes[2*i], 128);
         bcopy(&block.data[128], &inodes[2*i+1], 128);
     }
 // Read free block vector
 //TODO what would this for loop iterate until? 65536-42 is scuffed. Do i need to read the whole thing?
-    for (int i = 0; i < (65534-42)/256; i++) {
+    for (i = 0; i < (65534-42)/256; i++) {
         DiskReadBlock(sb.freeBlockVectorStartingBlockNumber+i, &block);
         //each block is 256 bytes
         bcopy(&block.data, &fbv[i*64]); //this is so scuffed but it'd be something like this
