@@ -8,8 +8,8 @@
 
 static dfs_inode inodes[256]; // all inodes
 static dfs_superblock sb; // superblock
-static uint32 fbv[65536]; // Free block vector. fbv size = file system size / file system block size
-//DFS_MAX_FILESYSTEM_SIZE / DFS_BLOCKSIZE = 0x4000000 / 1024 = 65536
+static uint32 fbv[2048]; // Free block vector. fbv size = file system size / file system block size / 32 bits
+//DFS_MAX_FILESYSTEM_SIZE / DFS_BLOCKSIZE = 0x4000000 / 1024 / 32 = 2048, 65536 bits so one bit per file system block
 
 static uint32 negativeone = 0xFFFFFFFF;
 static inline uint32 invert(uint32 n) { return n ^ negativeone; }
@@ -63,7 +63,8 @@ void DfsInvalidate() {
 //-------------------------------------------------------------------
 
 int DfsOpenFileSystem() {
-    disk_block block[4];
+    disk_block blockArray[4];
+    disk_block *block;
     int i;
 
 
@@ -77,28 +78,31 @@ int DfsOpenFileSystem() {
 // filesystem in memory already, and the filesystem cannot be valid 
 // until we read the superblock. Also, we don't know the block size 
 // until we read the superblock, either.
-    DiskReadBlock(4, &block[0]); //Superblock is always at physical block #4
-    DiskReadBlock(5, &block[1]);
-    DiskReadBlock(6, &block[2]);
-    DiskReadBlock(7, &block[3]);
+    DiskReadBlock(4, &blockArray[0]); //Superblock is always at physical block #4
+    DiskReadBlock(5, &blockArray[1]);
+    DiskReadBlock(6, &blockArray[2]);
+    DiskReadBlock(7, &blockArray[3]);
 
 // Copy the data from the block we just read into the superblock in memory
-    bcopy((char*)&block, (char*)&sb, sb.fileSystemBlockSize); //todo: should these be passed with or without &?
+    bcopy((char*)&blockArray, (char*)&sb, sb.fileSystemBlockSize); //todo: should these be passed with or without &?
 
 // All other blocks are sized by virtual block size:
 // Read inodes
 // Blocks are 256 bytes, each inode is 128 bytes
     for (i = 0; i < sb.numberInodes/2; i++) {
         DiskReadBlock(sb.inodesStartingBlockNumber+i, block); //Blocks 2 to 33, inclusive: Inode array.
-        bcopy(&block[0].data[0], (char*)inodes[2*i], 128);
-        bcopy(&block[0].data[128], (char*)&inodes[2*i+1], 128);
+        bcopy(&block->data[0], (char*)&inodes[2*i], 128);
+        bcopy(&block->data[128], (char*)&inodes[2*i+1], 128);
     }
 // Read free block vector
 //TODO what would this for loop iterate until? 65536-42 is scuffed. Do i need to read the whole thing?
-    for (i = 0; i < (65534-42)/256; i++) {
-        DiskReadBlock(sb.freeBlockVectorStartingBlockNumber+i, &block);
-        //each block is 256 bytes
-        bcopy(&block.data, &fbv[i*64]); //this is so scuffed but it'd be something like this
+    for (i = 0; i < sb.numFBVBlocks; i++) {
+        DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4, &blockArray[0]);
+        DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+1, &blockArray[1]);
+        DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+2, &blockArray[2]);
+        DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+3, &blockArray[3]);
+        //each file system block is 1024 bytes, so 256 uint32s
+        bcopy(blockArray, (char*)&fbv[i*256], sb.fileSystemBlockSize);
     }
 
 // Change superblock to be invalid, write back to disk, then change 

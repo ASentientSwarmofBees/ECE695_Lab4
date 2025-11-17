@@ -45,9 +45,9 @@ void main (int argc, char *argv[])
   }
   // Next, setup free block vector (fbv) and write free block vector to the disk
   sb.freeBlockVectorStartingBlockNumber = FDISK_FBV_BLOCK_START;
+  sb.numFBVBlocks = 8;
   //free block vector is file system blocks 34-41, physical blocks 136-167
-  int numberFBVBlocks = 6;
-  for (int i = 0; i < numberFBVBlocks; i++) {
+  for (int i = 0; i < sb.numFBVBlocks; i++) {
     bzero((FDISK_FBV_BLOCK_START+i)*4, diskblocksize);
     bzero((FDISK_FBV_BLOCK_START+i)*4+1, diskblocksize);
     bzero((FDISK_FBV_BLOCK_START+i)*4+2, diskblocksize);
