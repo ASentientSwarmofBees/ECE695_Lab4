@@ -23,6 +23,19 @@ void main (int argc, char *argv[])
   dfs_block *sb_dfsblock; //used to write superblock
 	// STUDENT: put your code here. Follow the guidelines below. They are just the main steps. 
 	// You need to think of the finer details. You can use bzero() to zero out bytes in memory
+  int blksz = disk_blocksize();
+  char testBlock[256];
+  for (i = 0; i < blksz; i++) {
+    testBlock[i] = i;
+  }
+  PrintPhysicalBlock(testBlock);
+
+
+
+
+
+
+
 
   //Initializations and argc check
 
