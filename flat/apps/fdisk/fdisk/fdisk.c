@@ -11,9 +11,9 @@ dfs_superblock sb;
 int diskblocksize = 0; // These are global in order to speed things up
 int disksize = 0;      // (i.e. fewer traps to OS to get the same number)
 
-void FdiskWriteBlock(uint32 blocknum, dfs_block *b); //You can use your own function. This function 
+int FdiskWriteFileSystemBlock(uint32 blocknum, dfs_block *b); //You can use your own function. This function 
 //calls disk_write_block() to write physical blocks to disk
-void FdiskWriteZerosToFileSystemBlock(uint32 blocknum);
+int FdiskWriteZerosToFileSystemBlock(uint32 blocknum);
 
 void main (int argc, char *argv[])
 {
@@ -43,7 +43,7 @@ void main (int argc, char *argv[])
   // Write all inodes as not in use and empty (all zeros)
   Printf("fdisk (%d): Zeroing inodes.\n", getpid());
   sb.inodesStartingBlockNumber = FDISK_INODE_BLOCK_START;
-  sb.numberInodes = 256;
+  sb.numberInodes = FDISK_NUM_INODES;
   //inode array is file system blocks 2-33, physical blocks 8-135
   for (i = 0; i < sb.numberInodes; i++) {
     FdiskWriteZerosToFileSystemBlock(FDISK_INODE_BLOCK_START+i);
@@ -67,7 +67,7 @@ void main (int argc, char *argv[])
     }
   }
   //Write FBV block 0
-  FdiskWriteBlock(FDISK_FBV_BLOCK_START, block);
+  FdiskWriteFileSystemBlock(FDISK_FBV_BLOCK_START, block);
   //Write FBV blocks 1-6
   for (i = 1; i < sb.numFBVBlocks-1; i++) {
     //mark all 65000 or so other blocks as empty 
@@ -75,7 +75,7 @@ void main (int argc, char *argv[])
   }
   //Prepare FBV block 7, marking that fs block 65535 is in use (superblock backup)
   for (i = 0; i < 128; i++) {
-    if (i = 127) {
+    if (i == 127) {
       block->data[i] = 0x80;
     }
     else {
@@ -83,29 +83,41 @@ void main (int argc, char *argv[])
     }
   }
   //Write FBV block 7
-  FdiskWriteBlock(FDISK_FBV_BLOCK_START+7, block);
+  FdiskWriteFileSystemBlock(FDISK_FBV_BLOCK_START+7, block);
 
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
   sb.fileSystemValid = 1;
   // boot record is all zeros in the first FILE system block (physical blocks 0-3), and superblock structure goes into the second FILE system block (physical blocks 4-7)
   Printf("fdisk (%d): Writing boot record and superblock to disk.\n", getpid());
   FdiskWriteZerosToFileSystemBlock(0);
-  FdiskWriteBlock(4, (dfs_block*)&sb); //physical block 4 is the first block of the superblock
-  FdiskWriteBlock(262140, (dfs_block*)&sb); //copy the superblock also to file system block 65535, where the copy of the superblock goes (physical blocks 262140-262143)
-  Printf("fdisk (%d): Formatted DFS disk for %d bytes.\n", getpid(), disksize);
+  FdiskWriteFileSystemBlock(1, (dfs_block*)&sb); //fs block 1 is the first block of the superblock
+  FdiskWriteFileSystemBlock(65535, (dfs_block*)&sb); //copy the superblock also to file system block 65535, where the copy of the superblock goes (physical blocks 262140-262143)
+  Printf("fdisk (%d): Formatted DFS disk for 0x%x bytes.\n", getpid(), disksize);
 }
 
-void FdiskWriteBlock(uint32 blocknum, dfs_block *b) {
+int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
   // STUDENT: put your code here
-  disk_write_block(blocknum, (char*)b);
+  int val;
+  int total = 0;
+  char *physicalBlock;
+  int j = 0;
+  //This should run 4 times, at data indices 0, 256, 512, and 768, to break the fs block into four physical blocks
+  //meanwhile, j is used to count 0, 1, 2, 3.
+  for (int i = 0; i < sb.fileSystemBlockSize; i += diskblocksize) {
+    bcopy(b->data[i], physicalBlock, diskblocksize);
+    if ((val = disk_write_block(fsblocknum*4+j, physicalBlock)) != diskblocksize) {
+      total += val;
+      return total;
+    }
+    total += val;
+    j++;
+  }
+  return total;
 }
 
-void FdiskWriteZerosToFileSystemBlock(uint32 blocknum) {
-  char* zeroedBlock;
-  bzero(zeroedBlock, diskblocksize);
+int FdiskWriteZerosToFileSystemBlock(uint32 fsblocknum) {
+  dfs_block *zeroedBlock;
+  bzero(zeroedBlock, sb.fileSystemBlockSize);
 
-  FdiskWriteBlock(blocknum*4, zeroedBlock);
-  FdiskWriteBlock(blocknum*4+1, zeroedBlock);
-  FdiskWriteBlock(blocknum*4+2, zeroedBlock);
-  FdiskWriteBlock(blocknum*4+3, zeroedBlock);
+  FdiskWriteBlock(fsblocknum, zeroedBlock);
 }
