@@ -27,6 +27,10 @@ static inline uint32 invert(uint32 n) { return n ^ negativeone; }
 // Non-inode functions first
 ///////////////////////////////////////////////////////////////////
 
+//declarations to avoid implicit declarations later
+void DfsInvalidate();
+int DfsOpenFileSystem();
+
 //-----------------------------------------------------------------
 // DfsModuleInit is called at boot time to initialize things and
 // open the file system for use.

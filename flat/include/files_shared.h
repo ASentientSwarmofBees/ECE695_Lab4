@@ -1,10 +1,7 @@
 #ifndef __FILES_SHARED__
 #define __FILES_SHARED__
 
-// Forward-declare struct tag for dfs_inode to avoid typedef redefinition
-// and circular includes. Use `struct dfs_inode *` in this header so
-// we don't require the full typedef from dfs_shared.h here.
-struct dfs_inode;
+struct dfs_inode; //forward declared so we don't get circular include errors
 
 #define FILE_SEEK_SET 1
 #define FILE_SEEK_END 2
