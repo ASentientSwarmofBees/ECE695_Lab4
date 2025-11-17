@@ -1,6 +1,6 @@
 PART 1
 
-Files edited: fdisk.h, dfs_shared.h, files_shared.h, disk.h, dfs.c
+Files edited: fdisk.h, dfs_shared.h, files_shared.h, disk.h, dfs.c, dfs.h
 
 PART 2
 
