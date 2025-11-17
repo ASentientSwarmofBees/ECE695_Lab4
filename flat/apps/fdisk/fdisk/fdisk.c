@@ -17,7 +17,6 @@ int FdiskWriteBlock(uint32 blocknum, dfs_block *b); //You can use your own funct
 void main (int argc, char *argv[])
 {
   int i; //loop var
-  char* zeroedBlock; //used for writing to memory to zero memory.
 	// STUDENT: put your code here. Follow the guidelines below. They are just the main steps. 
 	// You need to think of the finer details. You can use bzero() to zero out bytes in memory
 
@@ -26,7 +25,7 @@ void main (int argc, char *argv[])
   // Need to invalidate filesystem before writing to it to make sure that the OS
   // doesn't wipe out what we do here with the old version in memory
   // You can use dfs_invalidate(); but it will be implemented in Problem 2. You can just do 
-  Printf("Test.");
+  Printf("fdisk (%d): Beginning disk initialization.\n", getpid(), disksize);
   sb.fileSystemValid = 0;
   disksize = disk_size(); //0x4000000; //64MB
   diskblocksize = disk_blocksize(); //256
@@ -40,31 +39,21 @@ void main (int argc, char *argv[])
   sb.inodesStartingBlockNumber = FDISK_INODE_BLOCK_START;
   sb.numberInodes = 256;
   //inode array is file system blocks 2-33, physical blocks 8-135
-  bzero(zeroedBlock, diskblocksize);
   for (i = 0; i < sb.numberInodes; i++) {
-    disk_write_block((FDISK_INODE_BLOCK_START+i)*4, zeroedBlock);
-    disk_write_block((FDISK_INODE_BLOCK_START+i)*4+1, zeroedBlock);
-    disk_write_block((FDISK_INODE_BLOCK_START+i)*4+2, zeroedBlock);
-    disk_write_block((FDISK_INODE_BLOCK_START+i)*4+3, zeroedBlock);
+    FdiskWriteZerosToFileSystemBlock(FDISK_INODE_BLOCK_START+i);
   }
   // Next, setup free block vector (fbv) and write free block vector to the disk
   sb.freeBlockVectorStartingBlockNumber = FDISK_FBV_BLOCK_START;
   sb.numFBVBlocks = 8;
   //free block vector is file system blocks 34-41, physical blocks 136-167
   for (i = 0; i < sb.numFBVBlocks; i++) {
-    disk_write_block((FDISK_FBV_BLOCK_START+i)*4, zeroedBlock);
-    disk_write_block((FDISK_FBV_BLOCK_START+i)*4+1, zeroedBlock);
-    disk_write_block((FDISK_FBV_BLOCK_START+i)*4+2, zeroedBlock);
-    disk_write_block((FDISK_FBV_BLOCK_START+i)*4+3, zeroedBlock);
+    FdiskWriteZerosToFileSystemBlock(FDISK_FBV_BLOCK_START+i);
   }
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
   sb.fileSystemValid = 1;
   // boot record is all zeros in the first physical block, and superblock structure goes into the second physical block
   // Uh, shouldn't boot record be in first FILE system block (physical blocks 0-3) and superblock in second FILE system block (physical blocks 4-7)
-  disk_write_block(0, zeroedBlock);
-  disk_write_block(1, zeroedBlock);
-  disk_write_block(2, zeroedBlock);
-  disk_write_block(3, zeroedBlock);
+  FdiskWriteZerosToFileSystemBlock(0);
   bcopy(4, &sb, sb.fileSystemBlockSize); //physical block 4 is the first block of the superblock
   bcopy(262140, &sb, sb.fileSystemBlockSize); //copy the superblock also to file system block 65535, where the copy of the superblock goes
   Printf("fdisk (%d): Formatted DFS disk for %d bytes.\n", getpid(), disksize);
@@ -73,4 +62,14 @@ void main (int argc, char *argv[])
 int FdiskWriteBlock(uint32 blocknum, dfs_block *b) {
   // STUDENT: put your code here
   disk_write_block(blocknum, b);
+}
+
+int FdiskWriteZerosToFileSystemBlock(uint32 blocknum) {
+  char* zeroedBlock;
+  bzero(zeroedBlock, diskblocksize);
+
+  FdiskWriteblock(blocknum*4, zeroedBlock);
+  FdiskWriteblock(blocknum*4+1, zeroedBlock);
+  FdiskWriteblock(blocknum*4+2, zeroedBlock);
+  FdiskWriteblock(blocknum*4+3, zeroedBlock);
 }
