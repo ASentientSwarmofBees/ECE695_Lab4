@@ -102,13 +102,23 @@ int DfsOpenFileSystem() {
         DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+2, &blockArray[2]);
         DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+3, &blockArray[3]);
         //each file system block is 1024 bytes, so 256 uint32s
-        bcopy(blockArray, (char*)&fbv[i*256], sb.fileSystemBlockSize);
+        bcopy((char*)blockArray, (char*)&fbv[i*256], sb.fileSystemBlockSize);
     }
 
 // Change superblock to be invalid, write back to disk, then change 
 // it back to be valid in memory
     DfsInvalidate();
-    DiskWriteBlock(4, &sb);
+    bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
+    DiskWriteBlock(4, &blockArray[0]);
+    DiskWriteBlock(5, &blockArray[1]);
+    DiskWriteBlock(6, &blockArray[2]);
+    DiskWriteBlock(7, &blockArray[3]);
+    // Whenever we write the superblock, we must also write the backup
+    DiskWriteBlock(262140, &blockArray[0]);
+    DiskWriteBlock(262141, &blockArray[1]);
+    DiskWriteBlock(262142, &blockArray[2]);
+    DiskWriteBlock(262143, &blockArray[3]);
+
     sb.fileSystemValid = 1;
 
     return DFS_SUCCESS;
