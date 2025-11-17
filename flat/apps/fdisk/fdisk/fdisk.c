@@ -24,7 +24,7 @@ void main (int argc, char *argv[])
   // Need to invalidate filesystem before writing to it to make sure that the OS
   // doesn't wipe out what we do here with the old version in memory
   // You can use dfs_invalidate(); but it will be implemented in Problem 2. You can just do 
-  printf("Test.");
+  Printf("Test.");
   sb.fileSystemValid = 0;
   disksize = DiskSize(); //0x4000000; //64MB
   diskblocksize = DiskBytesPerBlock(); //256
