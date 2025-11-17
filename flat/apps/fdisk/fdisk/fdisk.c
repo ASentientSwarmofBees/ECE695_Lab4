@@ -114,7 +114,7 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
     total += val;
     j++;
   }
-  Printf("fdisk(%d): FdiskWriteFileSystemBlock: Successfully wrote %d bytes to block %d.\n", getpid(), total, fsblocknum);
+  Printf("fdisk(%d): FdiskWriteFileSystemBlock: Successfully wrote %d bytes to fs block %d (phys blocks %d-%d).\n", getpid(), total, fsblocknum, fsblocknum*4, fsblocknum*4+3);
   return total;
 }
 
