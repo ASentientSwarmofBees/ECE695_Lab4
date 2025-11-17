@@ -16,6 +16,7 @@ int FdiskWriteBlock(uint32 blocknum, dfs_block *b); //You can use your own funct
 
 void main (int argc, char *argv[])
 {
+  int i; //loop var
 	// STUDENT: put your code here. Follow the guidelines below. They are just the main steps. 
 	// You need to think of the finer details. You can use bzero() to zero out bytes in memory
 
@@ -38,7 +39,7 @@ void main (int argc, char *argv[])
   sb.inodesStartingBlockNumber = FDISK_INODE_BLOCK_START;
   sb.numberInodes = 256;
   //inode array is file system blocks 2-33, physical blocks 8-135
-  for (int i = 0; i < sb.numberInodes; i++) {
+  for (i = 0; i < sb.numberInodes; i++) {
     bzero((FDISK_INODE_BLOCK_START+i)*4, diskblocksize);
     bzero((FDISK_INODE_BLOCK_START+i)*4+1, diskblocksize);
     bzero((FDISK_INODE_BLOCK_START+i)*4+2, diskblocksize);
@@ -48,7 +49,7 @@ void main (int argc, char *argv[])
   sb.freeBlockVectorStartingBlockNumber = FDISK_FBV_BLOCK_START;
   sb.numFBVBlocks = 8;
   //free block vector is file system blocks 34-41, physical blocks 136-167
-  for (int i = 0; i < sb.numFBVBlocks; i++) {
+  for (i = 0; i < sb.numFBVBlocks; i++) {
     bzero((FDISK_FBV_BLOCK_START+i)*4, diskblocksize);
     bzero((FDISK_FBV_BLOCK_START+i)*4+1, diskblocksize);
     bzero((FDISK_FBV_BLOCK_START+i)*4+2, diskblocksize);
