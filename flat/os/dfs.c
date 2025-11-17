@@ -83,15 +83,15 @@ int DfsOpenFileSystem() {
     DiskReadBlock(7, &block[3]);
 
 // Copy the data from the block we just read into the superblock in memory
-    bcopy((char*)block, (char*)&sb, sb.fileSystemBlockSize);
+    bcopy((char*)&block, (char*)&sb, sb.fileSystemBlockSize); //todo: should these be passed with or without &?
 
 // All other blocks are sized by virtual block size:
 // Read inodes
 // Blocks are 256 bytes, each inode is 128 bytes
     for (i = 0; i < sb.numberInodes/2; i++) {
-        DiskReadBlock(sb.inodesStartingBlockNumber+i, &block); //Blocks 2 to 33, inclusive: Inode array.
-        bcopy(&block.data[0], &inodes[2*i], 128);
-        bcopy(&block.data[128], &inodes[2*i+1], 128);
+        DiskReadBlock(sb.inodesStartingBlockNumber+i, block); //Blocks 2 to 33, inclusive: Inode array.
+        bcopy(&block[0].data[0], &inodes[2*i], 128);
+        bcopy(&block[0].data[128], &inodes[2*i+1], 128);
     }
 // Read free block vector
 //TODO what would this for loop iterate until? 65536-42 is scuffed. Do i need to read the whole thing?
