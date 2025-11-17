@@ -2,7 +2,6 @@
 #include "misc.h"
 
 #include "fdisk.h"
-#include "disk.h"
 
 //TODO: look at dfs.c where i defined these?
 dfs_superblock sb;
@@ -27,13 +26,13 @@ void main (int argc, char *argv[])
   // You can use dfs_invalidate(); but it will be implemented in Problem 2. You can just do 
   Printf("Test.");
   sb.fileSystemValid = 0;
-  disksize = DiskSize(); //0x4000000; //64MB
-  diskblocksize = DiskBytesPerBlock(); //256
+  disksize = disk_size(); //0x4000000; //64MB
+  diskblocksize = disk_blocksize(); //256
   sb.fileSystemBlockSize = 1024;
   sb.numberFileSystemBlocks = 0x10000;  // 65536 blocks (64MB / 1024)
 
   // Make sure the disk exists before doing anything else
-  DiskCreate();
+  disk_create();
 
   // Write all inodes as not in use and empty (all zeros)
   sb.inodesStartingBlockNumber = FDISK_INODE_BLOCK_START;
