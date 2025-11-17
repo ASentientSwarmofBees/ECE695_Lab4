@@ -6,6 +6,8 @@
 #include "dfs.h"
 #include "synch.h"
 
+struct disk_block; //forward declared so we don't get circular include errors
+
 static dfs_inode inodes[256]; // all inodes
 static dfs_superblock sb; // superblock
 static uint32 fbv[65536]; // Free block vector. fbv size = file system size / file system block size
@@ -73,7 +75,7 @@ int DfsOpenFileSystem() {
 // filesystem in memory already, and the filesystem cannot be valid 
 // until we read the superblock. Also, we don't know the block size 
 // until we read the superblock, either.
-    disk_block block[4];
+    struct disk_block block[4];
     DiskReadBlock(4, &block[0]); //Superblock is always at physical block #4
     DiskReadBlock(5, &block[1]);
     DiskReadBlock(6, &block[2]);
