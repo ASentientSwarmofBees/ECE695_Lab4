@@ -54,8 +54,8 @@ void main (int argc, char *argv[])
   sb.fileSystemValid = 1;
   // boot record is all zeros in the first FILE system block (physical blocks 0-3), and superblock structure goes into the second FILE system block (physical blocks 4-7)
   FdiskWriteZerosToFileSystemBlock(0);
-  FdiskWriteBlock(4, &sb); //physical block 4 is the first block of the superblock
-  FdiskWriteBlock(262140, &sb); //copy the superblock also to file system block 65535, where the copy of the superblock goes
+  FdiskWriteBlock(4, (dfs_block*)&sb); //physical block 4 is the first block of the superblock
+  FdiskWriteBlock(262140, (dfs_block*)&sb); //copy the superblock also to file system block 65535, where the copy of the superblock goes
   Printf("fdisk (%d): Formatted DFS disk for %d bytes.\n", getpid(), disksize);
 }
 
