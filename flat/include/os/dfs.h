@@ -3,6 +3,6 @@
 
 #include "dfs_shared.h"
 
-
+void DfsModuleInit();
 
 #endif

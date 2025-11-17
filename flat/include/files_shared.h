@@ -9,8 +9,6 @@
 
 #define FILE_MAX_READWRITE_BYTES 4096 //TODO: this was commented out. does it need to be changed?
 
-typedef struct dfs_inode dfs_inode;
-
 typedef struct file_descriptor {
   // STUDENT: put file descriptor info here
   uint32 inUse; //an in use indicator to tell if the descriptor is free or in use. Boolean.
