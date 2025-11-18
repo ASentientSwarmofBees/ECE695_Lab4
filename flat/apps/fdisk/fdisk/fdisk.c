@@ -148,10 +148,12 @@ int FdiskWriteZerosToFileSystemBlock(uint32 fsblocknum) {
 }
 
 void PrintPhysicalBlock(char* b) {
+  /*
   int i;
   Printf("Printing block: ");
   for (i = 0; i < disk_blocksize; i++) {
     Printf("%x.", (int)b[i]);
   }
   Printf("\n");
+  */
 }
