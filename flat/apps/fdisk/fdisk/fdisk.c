@@ -23,7 +23,7 @@ void main (int argc, char *argv[])
   dfs_block *sb_dfsblock; //used to write superblock
 	// STUDENT: put your code here. Follow the guidelines below. They are just the main steps. 
 	// You need to think of the finer details. You can use bzero() to zero out bytes in memory
-  
+
   /*
   int blksz = disk_blocksize();
   char testBlock[256];
@@ -151,7 +151,7 @@ void PrintPhysicalBlock(char* b) {
   int i;
   Printf("Printing block: ");
   for (i = 0; i < disk_blocksize; i++) {
-    Printf("%c", b[i]);
+    Printf("%x.", (int)b[i]);
   }
   Printf("\n");
 }
