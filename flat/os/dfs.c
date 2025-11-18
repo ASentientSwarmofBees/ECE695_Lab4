@@ -39,6 +39,7 @@ int DfsOpenFileSystem();
 void DfsModuleInit() {
 // You essentially set the file system as invalid and then open 
 // using DfsOpenFileSystem().
+    printf("DfdModuleInit\n");
     DfsInvalidate();
     DfsOpenFileSystem();
 }
@@ -67,6 +68,7 @@ int DfsOpenFileSystem() {
     disk_block *block;
     int i;
 
+    printf("DfsOpenFileSystem\n");
 
 //Basic steps:
 // Check that filesystem is not already open
@@ -132,7 +134,8 @@ int DfsOpenFileSystem() {
 //-------------------------------------------------------------------
 
 int DfsCloseFileSystem() {
-    //Todo
+
+    DfsInvalidate();
     return 0;
 }
 
