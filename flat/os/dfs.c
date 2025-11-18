@@ -86,7 +86,7 @@ int DfsOpenFileSystem() {
     DiskReadBlock(7, &blockArray[3]);
 
 // Copy the data from the block we just read into the superblock in memory
-    bcopy((char*)&blockArray, (char*)&sb, sb.fileSystemBlockSize); //todo: should these be passed with or without &?
+    bcopy((char*)blockArray, (char*)&sb, sb.fileSystemBlockSize); //todo: should these be passed with or without &?
 
 // All other blocks are sized by virtual block size:
 // Read inodes
@@ -97,7 +97,6 @@ int DfsOpenFileSystem() {
         bcopy(&block->data[128], (char*)&inodes[2*i+1], 128);
     }
 // Read free block vector
-//TODO what would this for loop iterate until? 65536-42 is scuffed. Do i need to read the whole thing?
     for (i = 0; i < sb.numFBVBlocks; i++) {
         DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4, &blockArray[0]);
         DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4+1, &blockArray[1]);
@@ -134,7 +133,18 @@ int DfsOpenFileSystem() {
 //-------------------------------------------------------------------
 
 int DfsCloseFileSystem() {
-
+    printf("DfsCloseFileSystem\n");
+    disk_block blockArray[4];
+    bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
+    DiskWriteBlock(4, &blockArray[0]);
+    DiskWriteBlock(5, &blockArray[1]);
+    DiskWriteBlock(6, &blockArray[2]);
+    DiskWriteBlock(7, &blockArray[3]);
+    // Whenever we write the superblock, we must also write the backup
+    DiskWriteBlock(262140, &blockArray[0]);
+    DiskWriteBlock(262141, &blockArray[1]);
+    DiskWriteBlock(262142, &blockArray[2]);
+    DiskWriteBlock(262143, &blockArray[3]);
     DfsInvalidate();
     return 0;
 }
