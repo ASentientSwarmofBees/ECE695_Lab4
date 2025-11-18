@@ -92,7 +92,7 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
   //meanwhile, j is used to count 0, 1, 2, 3.
   for (i = 0; i < sb.fileSystemBlockSize; i += diskblocksize) {
     //Printf("fdisk(%d): FdiskWriteFileSystemBlock: Writing %d bytes from fs block index %d to physical block %d.\n", getpid(), diskblocksize, i, fsblocknum*4+j);
-    bcopy((char*)b->data[i], physicalBlock, diskblocksize);
+    bcopy((char*)&b->data[i], physicalBlock, diskblocksize);
     if ((val = disk_write_block(fsblocknum*4+j, physicalBlock)) != diskblocksize) {
       total += val;
       Printf("fdisk(%d): ERROR FdiskWriteFileSystemBlock: Tried to write %d bytes, instead wrote %d bytes. Returning with total bytes read %d.\n", getpid(), diskblocksize, val, total);
