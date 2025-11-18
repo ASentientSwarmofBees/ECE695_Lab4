@@ -6,9 +6,12 @@
 #include "dfs.h"
 #include "synch.h"
 
-static dfs_inode inodes[256]; // all inodes
+#define DFS_INODE_MAX_NUM 256
+#define DFS_FBV_MAX_NUM_WORDS 2048
+
+static dfs_inode inodes[DFS_INODE_MAX_NUM]; // all inodes
 static dfs_superblock sb; // superblock
-static uint32 fbv[2048]; // Free block vector. fbv size = file system size / file system block size / 32 bits
+static uint32 fbv[DFS_FBV_MAX_NUM_WORDS]; // Free block vector. fbv size = file system size / file system block size / 32 bits
 //DFS_MAX_FILESYSTEM_SIZE / DFS_BLOCKSIZE = 0x4000000 / 1024 / 32 = 2048, 65536 bits so one bit per file system block
 
 static uint32 negativeone = 0xFFFFFFFF;
@@ -134,9 +137,11 @@ int DfsOpenFileSystem() {
 
 int DfsCloseFileSystem() {
     disk_block blockArray[4];
+    disk_block *block;
+    int i; //loop var
 
     printf("DfsCloseFileSystem\n");
-
+    //Write superblock
     bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
     DiskWriteBlock(4, &blockArray[0]);
     DiskWriteBlock(5, &blockArray[1]);
@@ -148,7 +153,22 @@ int DfsCloseFileSystem() {
     DiskWriteBlock(262141, &blockArray[1]);
     DiskWriteBlock(262142, &blockArray[2]);
     DiskWriteBlock(262143, &blockArray[3]);
-    
+
+    //Write inodes
+    for (i = 0; i < DFS_INODE_MAX_NUM; i++) {
+        bcopy((char*)inodes[i], (char*)blockArray, sb.fileSystemBlockSize);
+        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4, &blockArray[0]);
+        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+1, &blockArray[1]);
+        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+2, &blockArray[2]);
+        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+3, &blockArray[3]);
+    }
+
+    //Write free block vector
+    for (i = 0; i < sb.numFBVBlocks*4; i++) {
+        bcopy((char*)&fbv[i*64], (char*)block, DISK_BLOCKSIZE);
+        DiskWriteBlock(sb.freeBlockVectorStartingBlockNumber*4+i, block);
+    }
+
     DfsInvalidate();
     return 0;
 }

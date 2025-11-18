@@ -3,10 +3,12 @@
 
 #include "fdisk.h"
 
-//TODO: look at dfs.c where i defined these?
+#define DFS_INODE_MAX_NUM 256
+#define DFS_FBV_MAX_NUM_WORDS 2048
+
 dfs_superblock sb;
-//dfs_inode inodes[DFS_INODE_MAX_NUM];
-//uint32 fbv[DFS_FBV_MAX_NUM_WORDS];
+dfs_inode inodes[DFS_INODE_MAX_NUM];
+uint32 fbv[DFS_FBV_MAX_NUM_WORDS];
 
 int diskblocksize = 0; // These are global in order to speed things up
 int disksize = 0;      // (i.e. fewer traps to OS to get the same number)
@@ -23,24 +25,6 @@ void main (int argc, char *argv[])
   dfs_block *sb_dfsblock; //used to write superblock
 	// STUDENT: put your code here. Follow the guidelines below. They are just the main steps. 
 	// You need to think of the finer details. You can use bzero() to zero out bytes in memory
-
-  /*
-  int blksz = disk_blocksize();
-  char testBlock[256];
-  for (i = 0; i < blksz; i++) {
-    testBlock[i] = (char)i;
-    Printf(".%c", testBlock[i]);
-  }
-  Printf("\n");
-  PrintPhysicalBlock(testBlock);
-  */
-
-
-
-
-
-
-
 
   //Initializations and argc check
 
@@ -76,12 +60,12 @@ void main (int argc, char *argv[])
   sb.numFBVBlocks = 8;
   //Setting up FBV 0, which should mark that fs blocks 0-41 are in use
   for (i = 0; i < 1024; i++) {
-    if (i <= 4) { //fs blocks 0-8, 9-15, 16-23, 24-31, 32-39
+    if (i <= 4) { //fs blocks 0-7, 8-15, 16-23, 24-31, 32-39
       block->data[i] = 0xFF;
       Printf("set block data %d to %d\n", i, block->data[i]);
     }
     else if (i == 5) { //fs blocks 40-41
-      block->data[i] = 0x02;
+      block->data[i] = 0x03;
       Printf("set block data %d to %d\n", i, block->data[i]);
     }
     else { //fs blocks 42-1023

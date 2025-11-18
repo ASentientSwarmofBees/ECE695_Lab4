@@ -11,8 +11,8 @@ typedef struct dfs_superblock {
   uint32 inodesStartingBlockNumber; //the starting file system block number for the array of inodes
   uint32 numberInodes; //the number of inodes in the inodes array
   uint32 freeBlockVectorStartingBlockNumber; //the starting file system block number for the free block vector.
-  uint32 numFBVBlocks; //Used to store number of FBV blocks (6)
-} dfs_superblock;
+  uint32 numFBVBlocks; //Used to store number of FBV blocks (8)
+ } dfs_superblock;
 
 #define DFS_BLOCKSIZE 1024  // Must be an integer multiple of the disk blocksize
 
