@@ -27,7 +27,9 @@ void main (int argc, char *argv[])
   char testBlock[256];
   for (i = 0; i < blksz; i++) {
     testBlock[i] = i;
+    Printf(testBlock[i]);
   }
+  Printf("\n");
   PrintPhysicalBlock(testBlock);
 
 
