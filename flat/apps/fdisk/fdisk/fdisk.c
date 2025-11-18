@@ -128,7 +128,7 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
   //This should run 4 times, at data indices 0, 256, 512, and 768, to break the fs block into four physical blocks
   //meanwhile, j is used to count 0, 1, 2, 3.
   for (i = 0; i < sb.fileSystemBlockSize; i += diskblocksize) {
-    Printf("fdisk(%d): FdiskWriteFileSystemBlock: Writing %d bytes from fs block index %d to physical block %d.\n", diskblocksize, i, fsblocknum*4+j);
+    Printf("fdisk(%d): FdiskWriteFileSystemBlock: Writing %d bytes from fs block index %d to physical block %d.\n", getpid(), diskblocksize, i, fsblocknum*4+j);
     bcopy((char*)b->data[i], physicalBlock, diskblocksize);
     if ((val = disk_write_block(fsblocknum*4+j, physicalBlock)) != diskblocksize) {
       total += val;
