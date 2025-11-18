@@ -166,6 +166,7 @@ int DfsCloseFileSystem() {
 
     //Write free block vector
     for (i = 0; i < sb.numFBVBlocks*4; i++) {
+        //64 uint32s fit in one 256 byte physical block
         bcopy((char*)&fbv[i*64], (char*)block, DISK_BLOCKSIZE);
         DiskWriteBlock(sb.freeBlockVectorStartingBlockNumber*4+i, block);
     }

@@ -58,38 +58,17 @@ void main (int argc, char *argv[])
   //free block vector is file system blocks 34-41, physical blocks 136-167
   sb.freeBlockVectorStartingBlockNumber = FDISK_FBV_BLOCK_START;
   sb.numFBVBlocks = 8;
-  //Setting up FBV 0, which should mark that fs blocks 0-41 are in use
-  for (i = 0; i < 1024; i++) {
-    if (i <= 4) { //fs blocks 0-7, 8-15, 16-23, 24-31, 32-39
-      block->data[i] = 0xFF;
-      Printf("set block data %d to %d\n", i, block->data[i]);
-    }
-    else if (i == 5) { //fs blocks 40-41
-      block->data[i] = 0x03;
-      Printf("set block data %d to %d\n", i, block->data[i]);
-    }
-    else { //fs blocks 42-1023
-      block->data[i] = 0x0;
-    }
+  //Setting up FBV to mark blocks 0-41 and 65535 in use 
+  for (i = 0; i < DFS_FBV_MAX_NUM_WORDS; i++) {
+    fbv[i] = 0x0;
   }
-  //Write FBV block 0
-  FdiskWriteFileSystemBlock(FDISK_FBV_BLOCK_START, block);
-  //Write FBV blocks 1-6
-  for (i = 1; i < sb.numFBVBlocks-1; i++) {
-    //mark all 65000 or so other blocks as empty 
-    FdiskWriteZerosToFileSystemBlock(FDISK_FBV_BLOCK_START+i);
+  fbv[0] = 0xFFFFFFFF;
+  fbv[1] = 0x000001FF;
+  fbv[DFS_FBV_MAX_NUM_WORDS-1] = 0x80000000;
+  for (i = 0; i < sb.numFBVBlocks; i++) {
+    bcopy((char*)&fbv[i*256], (char*)block, sb.fileSystemBlockSize);
+    FdiskWriteFileSystemBlock(sb.freeBlockVectorStartingBlockNumber+i, block);
   }
-  //Prepare FBV block 7, marking that fs block 65535 is in use (superblock backup)
-  for (i = 0; i < 1024; i++) {
-    if (i == 1023) {
-      block->data[i] = 0x80;
-    }
-    else {
-      block->data[i] = 0x0;
-    }
-  }
-  //Write FBV block 7
-  FdiskWriteFileSystemBlock(FDISK_FBV_BLOCK_START+7, block);
 
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
   sb.fileSystemValid = 1;
