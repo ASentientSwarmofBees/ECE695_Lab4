@@ -218,7 +218,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
 // on failure, and the number of bytes written on success.  
 //-----------------------------------------------------------------
 
-int DfsWriteBlock(uint32 blocknum, dfs_block *b){
+int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     return 0;
     //todo implement
 }
