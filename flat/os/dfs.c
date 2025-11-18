@@ -17,6 +17,8 @@ static uint32 fbv[DFS_FBV_MAX_NUM_WORDS]; // Free block vector. fbv size = file 
 static uint32 negativeone = 0xFFFFFFFF;
 static inline uint32 invert(uint32 n) { return n ^ negativeone; }
 
+static lock_t fbvLock;
+
 // You have already been told about the most likely places where you should use locks. You may use 
 // additional locks if it is really necessary.
 
@@ -45,6 +47,7 @@ void DfsModuleInit() {
     printf("DfdModuleInit\n");
     DfsInvalidate();
     DfsOpenFileSystem();
+    fbvLock = LockCreate();
 }
 
 //-----------------------------------------------------------------
@@ -193,8 +196,33 @@ uint32 DfsAllocateBlock() {
 // Check that file system has been validly loaded into memory
 // Find the first free block using the free block vector (FBV), mark it in use
 // Return handle to block
-    return 0;
-    //todo implement
+    int blockFound = 0;
+    int blockNum;
+    int i = 0;
+
+    printf("DfsAllocateBlock\n");
+
+    if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
+
+    LockAcquire(fbvLock);
+
+    do {
+        printf("i/32 = %d, i mod 32 = %d, fbv[%d] = 0x%x, 0x1 << (imod2) = 0x%x\n", i/32, i%32, fbv[i/32], 0x1 << (i%32), );
+        if (fbv[i / 32] & (0x1 << (i % 32))) {
+            i++;
+        }
+        else {
+            blockFound = 1;
+            blockNum = i;
+            printf("DfsAllocateBlock (%d): Allocating block %d.\n", getpid(), blockNum);
+        }
+    } while(blockFound == 0);
+
+    LockRelease(fbvLock);
+
+    return blockNum;
 }
 
 
@@ -203,6 +231,11 @@ uint32 DfsAllocateBlock() {
 //-----------------------------------------------------------------
 
 int DfsFreeBlock(uint32 blocknum) {
+
+    if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
+
     return 0;
     //todo implement
 }
