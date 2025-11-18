@@ -156,7 +156,7 @@ int DfsCloseFileSystem() {
 
     //Write inodes
     for (i = 0; i < DFS_INODE_MAX_NUM; i++) {
-        bcopy((char*)inodes[i], (char*)blockArray, sb.fileSystemBlockSize);
+        bcopy((char*)&inodes[i], (char*)blockArray, sb.fileSystemBlockSize);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4, &blockArray[0]);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+1, &blockArray[1]);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+2, &blockArray[2]);
