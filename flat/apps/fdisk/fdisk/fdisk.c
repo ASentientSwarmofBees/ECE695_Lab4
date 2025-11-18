@@ -26,7 +26,7 @@ void main (int argc, char *argv[])
   int blksz = disk_blocksize();
   char testBlock[256];
   for (i = 0; i < blksz; i++) {
-    testBlock[i] = i;
+    testBlock[i] = (char)i;
     char a = testBlock[i];
     char a = '1';
     Printf(a);
