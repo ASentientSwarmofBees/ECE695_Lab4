@@ -155,7 +155,8 @@ int DfsCloseFileSystem() {
     DiskWriteBlock(262143, &blockArray[3]);
 
     //Write inodes
-    for (i = 0; i < DFS_INODE_MAX_NUM; i++) {
+    //8 inodes fit in 1 fs block
+    for (i = 0; i < DFS_INODE_MAX_NUM; i += 8) {
         bcopy((char*)&inodes[i], (char*)blockArray, sb.fileSystemBlockSize);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4, &blockArray[0]);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+1, &blockArray[1]);
