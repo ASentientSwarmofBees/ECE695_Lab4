@@ -141,19 +141,10 @@ int DfsCloseFileSystem() {
     int i; //loop var
 
     printf("DfsCloseFileSystem\n");
-    printf("DfsCloseFileSystem: Writing superblock.\n");
-    //Write superblock
-    bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
-    DiskWriteBlock(4, &blockArray[0]);
-    DiskWriteBlock(5, &blockArray[1]);
-    DiskWriteBlock(6, &blockArray[2]);
-    DiskWriteBlock(7, &blockArray[3]);
 
-    // Whenever we write the superblock, we must also write the backup
-    DiskWriteBlock(262140, &blockArray[0]);
-    DiskWriteBlock(262141, &blockArray[1]);
-    DiskWriteBlock(262142, &blockArray[2]);
-    DiskWriteBlock(262143, &blockArray[3]);
+    if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
 
     //Write inodes
     //8 inodes fit in 1 fs block
@@ -174,8 +165,22 @@ int DfsCloseFileSystem() {
         DiskWriteBlock(sb.freeBlockVectorStartingBlockNumber*4+i, block);
     }
 
+    printf("DfsCloseFileSystem: Writing superblock.\n");
+    //Write superblock
+    bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
+    DiskWriteBlock(4, &blockArray[0]);
+    DiskWriteBlock(5, &blockArray[1]);
+    DiskWriteBlock(6, &blockArray[2]);
+    DiskWriteBlock(7, &blockArray[3]);
+
+    // Whenever we write the superblock, we must also write the backup
+    DiskWriteBlock(262140, &blockArray[0]);
+    DiskWriteBlock(262141, &blockArray[1]);
+    DiskWriteBlock(262142, &blockArray[2]);
+    DiskWriteBlock(262143, &blockArray[3]);
+
     DfsInvalidate();
-    return 0;
+    return DFS_SUCCESS;
 }
 
 
