@@ -77,6 +77,7 @@ void main (int argc, char *argv[])
   //Setting up FBV 0, which should mark that fs blocks 0-41 are in use
   for (i = 0; i < 1024; i++) {
     if (i <= 4) { //fs blocks 0-8, 9-15, 16-23, 24-31, 32-39
+      Printf("set block data %d to %d\n", i, block->data[i]);
       block->data[i] = 0xFF;
     }
     else if (i == 5) { //fs blocks 40-41
@@ -127,7 +128,7 @@ int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
   //meanwhile, j is used to count 0, 1, 2, 3.
   for (i = 0; i < sb.fileSystemBlockSize; i += diskblocksize) {
     bcopy((char*)b->data[i], physicalBlock, diskblocksize);
-    PrintPhysicalBlock(physicalBlock);
+    //PrintPhysicalBlock(physicalBlock);
     if ((val = disk_write_block(fsblocknum*4+j, physicalBlock)) != diskblocksize) {
       total += val;
       Printf("fdisk(%d): ERROR FdiskWriteFileSystemBlock: Tried to write %d bytes, instead wrote %d bytes. Returning with total bytes read %d.\n", getpid(), diskblocksize, val, total);
