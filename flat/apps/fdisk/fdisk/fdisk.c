@@ -77,11 +77,12 @@ void main (int argc, char *argv[])
   //Setting up FBV 0, which should mark that fs blocks 0-41 are in use
   for (i = 0; i < 1024; i++) {
     if (i <= 4) { //fs blocks 0-8, 9-15, 16-23, 24-31, 32-39
-      Printf("set block data %d to %d\n", i, block->data[i]);
       block->data[i] = 0xFF;
+      Printf("set block data %d to %d\n", i, block->data[i]);
     }
     else if (i == 5) { //fs blocks 40-41
       block->data[i] = 0x02;
+      Printf("set block data %d to %d\n", i, block->data[i]);
     }
     else { //fs blocks 42-1023
       block->data[i] = 0x0;
