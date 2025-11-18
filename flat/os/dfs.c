@@ -141,6 +141,7 @@ int DfsCloseFileSystem() {
     int i; //loop var
 
     printf("DfsCloseFileSystem\n");
+    printf("DfsCloseFileSystem: Writing superblock.\n");
     //Write superblock
     bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
     DiskWriteBlock(4, &blockArray[0]);
@@ -156,6 +157,7 @@ int DfsCloseFileSystem() {
 
     //Write inodes
     //8 inodes fit in 1 fs block
+    printf("DfsCloseFileSystem: Writing inodes.\n");
     for (i = 0; i < DFS_INODE_MAX_NUM; i += 8) {
         bcopy((char*)&inodes[i], (char*)blockArray, sb.fileSystemBlockSize);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4, &blockArray[0]);
@@ -165,11 +167,14 @@ int DfsCloseFileSystem() {
     }
 
     //Write free block vector
+    printf("DfsCloseFileSystem: Writing fbv.\n");
+    /*
     for (i = 0; i < sb.numFBVBlocks*4; i++) {
         //64 uint32s fit in one 256 byte physical block
         bcopy((char*)&fbv[i*64], (char*)block, DISK_BLOCKSIZE);
         DiskWriteBlock(sb.freeBlockVectorStartingBlockNumber*4+i, block);
     }
+    */
 
     DfsInvalidate();
     return 0;
