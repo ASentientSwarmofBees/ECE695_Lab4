@@ -28,6 +28,7 @@ void main (int argc, char *argv[])
   for (i = 0; i < blksz; i++) {
     testBlock[i] = i;
     char a = testBlock[i];
+    char a = '1';
     Printf(a);
   }
   Printf("\n");
