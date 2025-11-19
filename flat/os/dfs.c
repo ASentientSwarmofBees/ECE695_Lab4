@@ -218,7 +218,7 @@ uint32 DfsAllocateBlock() {
             fbv[i / 32] |= (0x1 << (i % 32));
             blockFound = 1;
             blockNum = i;
-            printf("DfsAllocateBlock (%d): Allocating fs block %d.\n", getpid(), blockNum);
+            printf("DfsAllocateBlock: Allocating fs block %d.\n", blockNum);
         }
     } while(blockFound == 0);
 
@@ -243,7 +243,7 @@ int DfsFreeBlock(uint32 blocknum) {
     if (CheckIfBlockAllocatedInFBV(blocknum) == 1) {
         fbv[blocknum / 32] &= ~(0x1 << (blocknum % 32));
         printf("DfsFreeBlock: Deallocated fs block %d.\n", blocknum);
-        LockHandleRelease(&fbvLock);
+        LockHandleRelease(fbvLock);
         return DFS_SUCCESS;
     }
     else {
@@ -311,7 +311,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     bytesWritten += DiskWriteBlock(blocknum*4+2, &blockArray[2]);
     bytesWritten += DiskWriteBlock(blocknum*4+3, &blockArray[3]);
 
-    prinf("DfsWriteBlock: Successfully wrote %d bytes to fs block %d.\n", bytesWritten, blocknum);
+    printf("DfsWriteBlock: Successfully wrote %d bytes to fs block %d.\n", bytesWritten, blocknum);
 
     return bytesWritten;
     //todo implement
