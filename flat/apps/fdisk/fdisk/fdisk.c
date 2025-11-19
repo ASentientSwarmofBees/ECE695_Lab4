@@ -69,7 +69,7 @@ void main (int argc, char *argv[])
   fbv[DFS_FBV_MAX_NUM_WORDS-1] = 0x80000000;
   for (i = 0; i < sb.numFBVBlocks; i++) {
     bcopy((char*)&fbv[i*256], (char*)block, sb.fileSystemBlockSize);
-    //FdiskWriteFileSystemBlock(sb.freeBlockVectorStartingBlockNumber+i, block);
+    FdiskWriteFileSystemBlock(sb.freeBlockVectorStartingBlockNumber+i, block);
   }
 
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
