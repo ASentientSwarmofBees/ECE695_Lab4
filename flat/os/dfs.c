@@ -129,6 +129,18 @@ int DfsOpenFileSystem() {
 
     sb.fileSystemValid = 1;
 
+    printf("Attempting to allocate a block.\n");
+    i = DfsAllocateBlock();
+    printf("Allocated block %d. FBV[%d] = 0x%x\n", i, i/32, fbv[i/32]);
+    DfsFreeBlock(i);
+    printf("Freed block %d\n", i);
+
+
+
+
+
+
+
     return DFS_SUCCESS;
 }
 
