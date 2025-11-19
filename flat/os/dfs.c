@@ -173,6 +173,8 @@ int DfsCloseFileSystem() {
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+3, &blockArray[3]);
     }
 
+    */
+
     //Write free block vector
     printf("DfsCloseFileSystem: Writing fbv.\n");
     for (i = 0; i < sb.numFBVBlocks*4; i++) {
@@ -181,7 +183,7 @@ int DfsCloseFileSystem() {
         DiskWriteBlock(sb.freeBlockVectorStartingBlockNumber*4+i, block);
     }
 
-    */
+    
 
     printf("DfsCloseFileSystem: Writing superblock.\n");
     //Write superblock
