@@ -148,9 +148,8 @@ int DfsCloseFileSystem() {
     disk_block *block;
     int i; //loop var
 
-    printf("DfsCloseFileSystem\n");
-
     if (sb.fileSystemValid != 1) {
+        printf("DfsCloseFileSystem: File sytem is invalid. Not writing to disk.\n");
         return DFS_FAIL;
     }
 
