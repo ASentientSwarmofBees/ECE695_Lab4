@@ -52,7 +52,7 @@ void main (int argc, char *argv[])
   sb.numberInodes = FDISK_NUM_INODES;
   //inode array is file system blocks 2-33, physical blocks 8-135
   for (i = 0; i < 32; i++) { //32 pages of inodes
-    //FdiskWriteZerosToFileSystemBlock(FDISK_INODE_BLOCK_START+i);
+    FdiskWriteZerosToFileSystemBlock(FDISK_INODE_BLOCK_START+i);
   }
 
   // Next, setup free block vector (fbv) and write free block vector to the disk
