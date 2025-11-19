@@ -161,8 +161,6 @@ int DfsCloseFileSystem() {
         return DFS_FAIL;
     }
 
-    /*
-
     //Write inodes
     //8 inodes fit in 1 fs block
     printf("DfsCloseFileSystem: Writing inodes.\n");
@@ -181,8 +179,6 @@ int DfsCloseFileSystem() {
         bcopy((char*)&fbv[i*64], (char*)block, DISK_BLOCKSIZE);
         DiskWriteBlock(sb.freeBlockVectorStartingBlockNumber*4+i, block);
     }
-
-    */
 
     printf("DfsCloseFileSystem: Writing superblock.\n");
     //Write superblock
