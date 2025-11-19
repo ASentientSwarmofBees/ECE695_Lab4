@@ -20,5 +20,6 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes);
 uint32 DfsInodeFilesize(uint32 handle);
 uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum);
 uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum);
+int CheckIfBlockAllocatedInFBV(uint32 blocknum);
 
 #endif
