@@ -95,6 +95,8 @@ int DfsOpenFileSystem() {
 // Copy the data from the block we just read into the superblock in memory
     bcopy((char*)blockArray, (char*)&sb, DFS_BLOCKSIZE); //todo: should these be passed with or without &?
 
+    printf("DfsOpenFileSystem: Loaded SB from memory. About to use the following fields:\nsb.numberInodes: %d\nsb.inodesStartingBlockNumber: %d\nsb.numFBVBlocks: %d\nsb.freeBlockVectorStartingBlockNumber: %d\nsb.fileSystemBlockSize: %d\nsb.fileSystemValid: %d\n", sb.numberInodes, sb.inodesStartingBlockNumber, sb.numFBVBlocks, sb.freeBlockVectorStartingBlockNumber, sb.fileSystemBlockSize, sb.fileSystemValid);
+
 // All other blocks are sized by virtual block size:
 // Read inodes
 // Blocks are 256 bytes, each inode is 128 bytes
