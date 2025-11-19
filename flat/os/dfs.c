@@ -105,6 +105,7 @@ int DfsOpenFileSystem() {
 // All other blocks are sized by virtual block size:
 // Read inodes
 // Blocks are 256 bytes, each inode is 128 bytes
+
     for (i = 0; i < sb.numberInodes/2; i++) {
         DiskReadBlock(sb.inodesStartingBlockNumber+i, block); //Blocks 2 to 33, inclusive: Inode array.
         bcopy(&block->data[0], (char*)&inodes[2*i], (int)sizeof(dfs_inode)); //changed from 128 to (int)sizeof(dfs_inode)
@@ -135,7 +136,7 @@ int DfsOpenFileSystem() {
     DiskWriteBlock(262142, &blockArray[2]);
     DiskWriteBlock(262143, &blockArray[3]);
 
-    sb.fileSystemValid = 1;
+    sb.fileSystemValid = 0xf;
     return DFS_SUCCESS;
 }
 
