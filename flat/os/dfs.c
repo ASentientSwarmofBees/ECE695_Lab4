@@ -36,6 +36,7 @@ static lock_t fbvLock;
 void DfsInvalidate();
 int DfsOpenFileSystem();
 int CheckIfBlockAllocatedInFBV(uint32 blocknum);
+void PrintSBTest();
 
 //-----------------------------------------------------------------
 // DfsModuleInit is called at boot time to initialize things and
@@ -77,6 +78,9 @@ int DfsOpenFileSystem() {
 
     printf("DfsOpenFileSystem\n");
 
+    printf("SBtest pre loading (should be all 0's)\n");
+    PrintSBTest();
+
 //Basic steps:
 // Check that filesystem is not already open
     if(sb.fileSystemValid == 1) {
@@ -95,8 +99,9 @@ int DfsOpenFileSystem() {
 // Copy the data from the block we just read into the superblock in memory
     bcopy((char*)blockArray, (char*)&sb, DFS_BLOCKSIZE); //todo: should these be passed with or without &?
 
-    printf("DfsOpenFileSystem: Loaded SB from memory. About to use the following fields:\nsb.numberInodes: %d\nsb.inodesStartingBlockNumber: %d\nsb.numFBVBlocks: %d\nsb.freeBlockVectorStartingBlockNumber: %d\nsb.fileSystemBlockSize: %d\nsb.fileSystemValid: %d\n", sb.numberInodes, sb.inodesStartingBlockNumber, sb.numFBVBlocks, sb.freeBlockVectorStartingBlockNumber, sb.fileSystemBlockSize, sb.fileSystemValid);
-
+    printf("Sbtest AFTer loading\n");
+    PrintSBTest();
+    
 // All other blocks are sized by virtual block size:
 // Read inodes
 // Blocks are 256 bytes, each inode is 128 bytes
@@ -438,4 +443,15 @@ int CheckIfBlockAllocatedInFBV(uint32 blocknum) {
     else {
         return 0;
     }
+}
+
+void PrintSBTest() {
+    printf("   ___PrintSBTest___\n");
+    printf("   sb.fileSystemValid: %d\n", sb.fileSystemValid);
+    printf("   sb.fileSystemBlockSize: %d\n", sb.fileSystemBlockSize);
+    printf("   sb.numberFileSystemBlocks: %d\n", sb.numberFileSystemBlocks);
+    printf("   sb.inodesStartingBlockNumber: %d\n", sb.inodesStartingBlockNumber);
+    printf("   sb.numberInodes: %d\n", sb.numberInodes);
+    printf("   sb.freeBlockVectorStartingBlockNumber: %d\n", sb.freeBlockVectorStartingBlockNumber);
+    printf("   sb.numFBVBlocks: %d\n", sb.numFBVBlocks);
 }
