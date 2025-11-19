@@ -78,9 +78,6 @@ int DfsOpenFileSystem() {
 
     printf("DfsOpenFileSystem\n");
 
-    printf("SBtest pre loading (should be all 0's)\n");
-    PrintSBTest();
-
 //Basic steps:
 // Check that filesystem is not already open
     if(sb.fileSystemValid == 1) {
@@ -99,7 +96,6 @@ int DfsOpenFileSystem() {
 // Copy the data from the block we just read into the superblock in memory
     bcopy((char*)blockArray, (char*)&sb, (int)sizeof(sb)); //changed from DFS_BLOCKSIZE to (int)sizeof(sb)
 
-    printf("Sbtest AFTer loading\n");
     PrintSBTest();
     
 // All other blocks are sized by virtual block size:
