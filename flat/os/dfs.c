@@ -127,10 +127,10 @@ int DfsOpenFileSystem() {
     DiskWriteBlock(6, &blockArray[2]);
     DiskWriteBlock(7, &blockArray[3]);
     // Whenever we write the superblock, we must also write the backup
-    DiskWriteBlock(262140, &blockArray[0]);
-    DiskWriteBlock(262141, &blockArray[1]);
-    DiskWriteBlock(262142, &blockArray[2]);
-    DiskWriteBlock(262143, &blockArray[3]);
+    DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4, &blockArray[0]); //physical block 262140
+    DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+1, &blockArray[1]);
+    DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+2, &blockArray[2]);
+    DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+3, &blockArray[3]);
 
     sb.fileSystemValid = 1;
     return DFS_SUCCESS;
