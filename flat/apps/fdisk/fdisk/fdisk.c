@@ -3,7 +3,7 @@
 
 #include "fdisk.h"
 
-#include "dfs.h"
+#include "os/dfs.h"
 
 #define DFS_INODE_MAX_NUM 256
 #define DFS_FBV_MAX_NUM_WORDS 2048
