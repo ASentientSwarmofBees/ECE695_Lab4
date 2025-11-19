@@ -97,7 +97,7 @@ int DfsOpenFileSystem() {
     DiskReadBlock(7, &blockArray[3]);
 
 // Copy the data from the block we just read into the superblock in memory
-    bcopy((char*)blockArray, (char*)&sb, DFS_BLOCKSIZE); //todo: should these be passed with or without &?
+    bcopy((char*)blockArray, (char*)&sb, (int)sizeof(sb)); //changed from DFS_BLOCKSIZE to (int)sizeof(sb)
 
     printf("Sbtest AFTer loading\n");
     PrintSBTest();
@@ -107,8 +107,8 @@ int DfsOpenFileSystem() {
 // Blocks are 256 bytes, each inode is 128 bytes
     for (i = 0; i < sb.numberInodes/2; i++) {
         DiskReadBlock(sb.inodesStartingBlockNumber+i, block); //Blocks 2 to 33, inclusive: Inode array.
-        bcopy(&block->data[0], (char*)&inodes[2*i], 128);
-        bcopy(&block->data[128], (char*)&inodes[2*i+1], 128);
+        bcopy(&block->data[0], (char*)&inodes[2*i], (int)sizeof(dfs_inode)); //changed from 128 to (int)sizeof(dfs_inode)
+        bcopy(&block->data[128], (char*)&inodes[2*i+1], (int)sizeof(dfs_inode)); //changed from 128 to (int)sizeof(dfs_inode)
     }
 // Read free block vector
     for (i = 0; i < sb.numFBVBlocks; i++) {
@@ -123,7 +123,8 @@ int DfsOpenFileSystem() {
 // Change superblock to be invalid, write back to disk, then change 
 // it back to be valid in memory
     DfsInvalidate();
-    bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
+    bzero((char*)blockArray, sb.fileSystemBlockSize);
+    bcopy((char*)&sb, (char*)blockArray, (int)sizeof(sb)); //changed from sb.fileSystemBlockSize to (int)sizeof(sb)
     DiskWriteBlock(4, &blockArray[0]);
     DiskWriteBlock(5, &blockArray[1]);
     DiskWriteBlock(6, &blockArray[2]);
@@ -177,7 +178,8 @@ int DfsCloseFileSystem() {
 
     printf("DfsCloseFileSystem: Writing superblock.\n");
     //Write superblock
-    bcopy((char*)&sb, (char*)blockArray, sb.fileSystemBlockSize);
+    bzero(blockArray, sb.fileSystemBlockSize);
+    bcopy((char*)&sb, (char*)blockArray, (int)sizeof(sb)); //changed from sb.fileSystemBlockSize to (int)sizeof(sb)
     DiskWriteBlock(4, &blockArray[0]);
     DiskWriteBlock(5, &blockArray[1]);
     DiskWriteBlock(6, &blockArray[2]);
@@ -269,6 +271,7 @@ int DfsFreeBlock(uint32 blocknum) {
 
 int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
+    int val = 0;
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -279,15 +282,21 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         return DFS_FAIL;
     }
 
-    DiskReadBlock(blocknum*4, &blockArray[0]);
-    DiskReadBlock(blocknum*4+1, &blockArray[1]);
-    DiskReadBlock(blocknum*4+2, &blockArray[2]);
-    DiskReadBlock(blocknum*4+3, &blockArray[3]);
+    val += DiskReadBlock(blocknum*4, &blockArray[0]);
+    val += DiskReadBlock(blocknum*4+1, &blockArray[1]);
+    val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
+    val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
 
     bcopy((char*)blockArray, (char*)b, sb.fileSystemBlockSize);
-    printf("DfsReadBlock: Successfully read %d bytes from fs block %d.\n", sb.fileSystemBlockSize, blocknum);
+    
+    if (val != sb.fileSystemBlockSize) {
+        printf("DfsReadBlock: Tried to read %d bytes from fs block %d,, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
+    }
+    else {
+        printf("DfsReadBlock: Successfully read %d bytes from fs block %d.\n", sb.fileSystemBlockSize, blocknum);
+    }
 
-    return sb.fileSystemBlockSize;
+    return val;
 }
 
 
