@@ -4,6 +4,7 @@ Files edited: fdisk.h, dfs_shared.h, files_shared.h, disk.h, dfs.c, dfs.h, files
 
 PART 2
 Files edited: dfs.c, dfs.h, ostests.c
+Sources referenced: https://www.geeksforgeeks.org/c/sizeof-operator-c/
 
 PART 3
 

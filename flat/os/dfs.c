@@ -135,7 +135,7 @@ int DfsOpenFileSystem() {
     DiskWriteBlock(262142, &blockArray[2]);
     DiskWriteBlock(262143, &blockArray[3]);
 
-    sb.fileSystemValid = 1;
+    sb.fileSystemValid = 0xf;
     return DFS_SUCCESS;
 }
 
@@ -288,7 +288,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
 
     bcopy((char*)blockArray, (char*)b, sb.fileSystemBlockSize);
-    
+
     if (val != sb.fileSystemBlockSize) {
         printf("DfsReadBlock: Tried to read %d bytes from fs block %d,, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
     }
