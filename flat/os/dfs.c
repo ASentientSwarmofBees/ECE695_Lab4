@@ -214,7 +214,7 @@ uint32 DfsAllocateBlock() {
     LockHandleAcquire(fbvLock);
 
     do {
-        printf("i = %d, i/32 = %d, i mod 32 = %d, fbv[%d] = 0x%x, 0x1 << (imod32) = 0x%x, & = 0x%x\n", i, i/32, i%32, i/32, fbv[i/32], 0x1 << (i%32), fbv[i / 32] & (0x1 << (i % 32)));
+        //printf("i = %d, i/32 = %d, i mod 32 = %d, fbv[%d] = 0x%x, 0x1 << (imod32) = 0x%x, & = 0x%x\n", i, i/32, i%32, i/32, fbv[i/32], 0x1 << (i%32), fbv[i / 32] & (0x1 << (i % 32)));
         if (CheckIfBlockAllocatedInFBV(i) == 1) {
             i++;
         }

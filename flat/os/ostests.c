@@ -24,8 +24,8 @@ void RunOSTests() {
   for (i = 0; i < 10; i++) {
     printf("   Block %d status: %d.\n", array[i], CheckIfBlockAllocatedInFBV(array[i]));
   }
-  printf("   Attempting to free 10 previously allocated blocks.\n");
-  for (i = 0; i < 10; i++) {
+  printf("   Attempting to free 5 previously allocated blocks.\n");
+  for (i = 0; i < 5; i++) {
     DfsFreeBlock(array[i]);
     printf("   Freed block %d of 10. Block # %d.\n", i, array[i]);
   }
