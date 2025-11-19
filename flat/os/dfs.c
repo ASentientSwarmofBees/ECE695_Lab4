@@ -206,21 +206,22 @@ uint32 DfsAllocateBlock() {
         return DFS_FAIL;
     }
 
-    LockAcquire(fbvLock);
+    LockAcquire(&fbvLock);
 
     do {
         printf("i/32 = %d, i mod 32 = %d, fbv[%d] = 0x%x, 0x1 << (imod2) = 0x%x\n", i/32, i%32, fbv[i/32], 0x1 << (i%32), );
-        if (fbv[i / 32] & (0x1 << (i % 32))) {
+        if (CheckIfBlockAllocatedInFBV(i) == 1) {
             i++;
         }
         else {
+            fbv[i / 32] |= (0x1 << (i % 32));
             blockFound = 1;
             blockNum = i;
-            printf("DfsAllocateBlock (%d): Allocating block %d.\n", getpid(), blockNum);
+            printf("DfsAllocateBlock (%d): Allocating fs block %d.\n", getpid(), blockNum);
         }
     } while(blockFound == 0);
 
-    LockRelease(fbvLock);
+    LockRelease(&fbvLock);
 
     return blockNum;
 }
@@ -236,8 +237,19 @@ int DfsFreeBlock(uint32 blocknum) {
         return DFS_FAIL;
     }
 
-    return 0;
-    //todo implement
+    LockAcquire(&fbvLock);
+
+    if (CheckIfBlockAllocatedInFBV(blocknum) == 1) {
+        fbv[blocknum / 32] &= ~(0x1 << (blocknum % 32));
+        printf("DfsFreeBlock: Deallocated fs block %d.\n", blocknum);
+        LockRelease(&fbvLock);
+        return DFS_SUCCESS;
+    }
+    else {
+        printf("DfsFreeBlock: Tried to free fs block %d, but was not in use.\n", blocknum);
+        LockRelease(&fbvLock);
+        return DFS_FAIL;
+    }
 }
 
 
@@ -249,8 +261,26 @@ int DfsFreeBlock(uint32 blocknum) {
 //-----------------------------------------------------------------
 
 int DfsReadBlock(uint32 blocknum, dfs_block *b) {
-    return 0;
-    //todo implement
+    disk_block blockArray[4];
+
+    if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
+
+    if (CheckIfBlockAllocatedInFBV(blocknum) == 0) {
+        printf("DfsReadBlock: Tried to read fs block %d, but it is not allocated.\n", blocknum);
+        return DFS_FAIL;
+    }
+
+    DiskReadBlock(blocknum*4, &blockArray[0]);
+    DiskReadBlock(blocknum*4+1, &blockArray[1]);
+    DiskReadBlock(blocknum*4+2, &blockArray[2]);
+    DiskReadBlock(blocknum*4+3, &blockArray[3]);
+
+    bcopy((char*)blockArray, (char*)b, sb.fileSystemBlockSize);
+    printf("DfsReadBlock: Successfully read %d bytes from fs block %d.\n", sb.fileSystemBlockSize, blocknum);
+
+    return sb.fileSystemBlockSize;
 }
 
 
@@ -262,7 +292,27 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
 //-----------------------------------------------------------------
 
 int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
-    return 0;
+    disk_block blockArray[4];
+    int bytesWritten = 0;
+    
+    if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
+
+    if (CheckIfBlockAllocatedInFBV(blocknum) == 0) {
+        printf("DfsWriteBlock: Tried to write to fs block %d, but it is not allocated.\n", blocknum);
+        return DFS_FAIL;
+    }
+
+    bcopy((char*)b, (char*)blockArray, sb.fileSystemBlockSize);
+    bytesWritten += DiskWriteBlock(blocknum*4, &blockArray[0]);
+    bytesWritten += DiskWriteBlock(blocknum*4+1, &blockArray[1]);
+    bytesWritten += DiskWriteBlock(blocknum*4+2, &blockArray[2]);
+    bytesWritten += DiskWriteBlock(blocknum*4+3, &blockArray[3]);
+
+    prinf("DfsWriteBlock: Successfully wrote %d bytes to fs block %d.\n", bytesWritten, blocknum);
+
+    return bytesWritten;
     //todo implement
 }
 
@@ -377,4 +427,13 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
 uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum) {
     return 0;
     //todo implement
+}
+
+int CheckIfBlockAllocatedInFBV(uint32 blocknum) {
+    if (fbv[blocknum / 32] & (0x1 << (blocknum % 32))) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }
