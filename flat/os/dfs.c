@@ -132,7 +132,7 @@ int DfsOpenFileSystem() {
     DiskWriteBlock(262142, &blockArray[2]);
     DiskWriteBlock(262143, &blockArray[3]);
 
-    sb.fileSystemValid = 0xf;
+    sb.fileSystemValid = 1;
     return DFS_SUCCESS;
 }
 
