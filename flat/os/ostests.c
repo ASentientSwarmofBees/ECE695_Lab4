@@ -6,5 +6,7 @@
 
 void RunOSTests() {
   // STUDENT: run any os-level tests here
+  int i;
+  printf("OS Tests Start\n");
 }
 

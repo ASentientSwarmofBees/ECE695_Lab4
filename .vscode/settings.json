@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "ostraps.h": "c",
-        "traps.h": "c"
+        "traps.h": "c",
+        "disk.h": "c"
     }
 }
