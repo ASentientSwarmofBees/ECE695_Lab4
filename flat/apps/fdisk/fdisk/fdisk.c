@@ -52,7 +52,7 @@ void main (int argc, char *argv[])
   sb.numberInodes = FDISK_NUM_INODES;
   //inode array is file system blocks 2-33, physical blocks 8-135
   for (i = 0; i < 32; i++) { //32 pages of inodes
-    FdiskWriteZerosToFileSystemBlock(FDISK_INODE_BLOCK_START+i);
+    //FdiskWriteZerosToFileSystemBlock(FDISK_INODE_BLOCK_START+i);
   }
 
   // Next, setup free block vector (fbv) and write free block vector to the disk
@@ -69,7 +69,7 @@ void main (int argc, char *argv[])
   fbv[DFS_FBV_MAX_NUM_WORDS-1] = 0x80000000;
   for (i = 0; i < sb.numFBVBlocks; i++) {
     bcopy((char*)&fbv[i*256], (char*)block, sb.fileSystemBlockSize);
-    FdiskWriteFileSystemBlock(sb.freeBlockVectorStartingBlockNumber+i, block);
+    //FdiskWriteFileSystemBlock(sb.freeBlockVectorStartingBlockNumber+i, block);
   }
 
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
