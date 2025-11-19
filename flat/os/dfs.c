@@ -105,7 +105,6 @@ int DfsOpenFileSystem() {
 // All other blocks are sized by virtual block size:
 // Read inodes
 // Blocks are 256 bytes, each inode is 128 bytes
-/*
     for (i = 0; i < sb.numberInodes/2; i++) {
         DiskReadBlock(sb.inodesStartingBlockNumber+i, block); //Blocks 2 to 33, inclusive: Inode array.
         bcopy(&block->data[0], (char*)&inodes[2*i], (int)sizeof(dfs_inode)); //changed from 128 to (int)sizeof(dfs_inode)
@@ -120,8 +119,6 @@ int DfsOpenFileSystem() {
         //each file system block is 1024 bytes, so 256 uint32s
         bcopy((char*)blockArray, (char*)&fbv[i*256], sb.fileSystemBlockSize); //TODO INCONSISTENCY IN WHETHER OR NOT IM ADDRESSING AAAAAAAAA
     }
-
-    */
 
 // Change superblock to be invalid, write back to disk, then change 
 // it back to be valid in memory
