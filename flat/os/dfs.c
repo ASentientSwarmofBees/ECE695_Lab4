@@ -206,7 +206,7 @@ uint32 DfsAllocateBlock() {
         return DFS_FAIL;
     }
 
-    LockAcquire(&fbvLock);
+    LockHandleAcquire(&fbvLock);
 
     do {
         printf("i/32 = %d, i mod 32 = %d, fbv[%d] = 0x%x, 0x1 << (imod2) = 0x%x\n", i/32, i%32, fbv[i/32], 0x1 << (i%32), );
@@ -221,7 +221,7 @@ uint32 DfsAllocateBlock() {
         }
     } while(blockFound == 0);
 
-    LockRelease(&fbvLock);
+    LockHandleRelease(&fbvLock);
 
     return blockNum;
 }
@@ -237,17 +237,17 @@ int DfsFreeBlock(uint32 blocknum) {
         return DFS_FAIL;
     }
 
-    LockAcquire(&fbvLock);
+    LockHandleAcquire(&fbvLock);
 
     if (CheckIfBlockAllocatedInFBV(blocknum) == 1) {
         fbv[blocknum / 32] &= ~(0x1 << (blocknum % 32));
         printf("DfsFreeBlock: Deallocated fs block %d.\n", blocknum);
-        LockRelease(&fbvLock);
+        LockHandleRelease(&fbvLock);
         return DFS_SUCCESS;
     }
     else {
         printf("DfsFreeBlock: Tried to free fs block %d, but was not in use.\n", blocknum);
-        LockRelease(&fbvLock);
+        LockHandleRelease(&fbvLock);
         return DFS_FAIL;
     }
 }
