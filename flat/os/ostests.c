@@ -4,7 +4,7 @@
 #include "disk.h"
 #include "dfs.h"
 
-#define TESTS 2
+#define TESTS 3
 #define NUMBYTES 1024
 
 void RunOSTests() {
@@ -64,6 +64,7 @@ void RunOSTests() {
   }
   if (TESTS == 2) {
     //ostests example code, testingInodes
+
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
     for(a=0; a<1024; a++) {
@@ -84,5 +85,10 @@ void RunOSTests() {
     inode = DfsInodeOpen("ece595-file-2");
     printf("runostests: ece595-file-2 open, inode = %d\n", inode);
   }
-
+  if (TESTS == 3) {
+    //Delete all inodes
+    for (i = 0; i < 256; i++) {
+      DfsInodeDelete(i);
+    }
+  }
 }
