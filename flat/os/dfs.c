@@ -353,9 +353,12 @@ uint32 DfsInodeFilenameExists(char *filename) {
     }
 
     for (i = 0; i < sb.numberInodes; i++) {
+        LockHandleAcquire(inodeLock);
         if (inodes[i].inUse == 1 && dstrncmp(filename, inodes[i].fileName, FILE_MAX_FILENAME_LENGTH) == 0) {
+            LockHandleRelease(inodeLock);
             return (uint32)i;
         }
+        LockHandleRelease(inodeLock);
     }
 
     return DFS_FAIL;
@@ -385,12 +388,15 @@ uint32 DfsInodeOpen(char *filename) {
     }
 
     for (i = 0; i < sb.numberInodes; i++) {
+        LockHandleAcquire(inodeLock);
         if (inodes[i].inUse == 0) {
             // Free inode found
             handle = i;
             handleFound = 1;
+            LockHandleRelease(inodeLock);
             break;
         }
+        LockHandleRelease(inodeLock);
     }
     if (handleFound == 0) {
         printf("DfsInodeOpen: ERROR. No free inodes left to allocate.\n");
@@ -426,10 +432,13 @@ int DfsInodeDelete(uint32 handle) {
         return DFS_FAIL;
     }
 
+    LockHandleAcquire(inodeLock);
     if (inodes[handle].inUse == 0) {
         printf("DfsInodeDelete: ERROR. Tried to delete an inode that is not in use. (handle: %d)\n", handle);
+        LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
+    LockHandleRelease(inodeLock);
 
     printf("DfsInodeDelete: Deleting inode handle %d\n", handle);
 
@@ -490,8 +499,8 @@ int DfsInodeDelete(uint32 handle) {
     printf("DfsInodeDelete: Marking inode %d as not in use. ", handle);
     LockHandleAcquire(inodeLock);
     inodes[handle].inUse = 0;
-    LockHandleRelease(inodeLock);
     printf("inuse now = %d.\n", inodes[handle].inUse);
+    LockHandleRelease(inodeLock);
 
     return DFS_SUCCESS;
 }
@@ -515,10 +524,13 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         return DFS_FAIL;
     }
 
+    LockHandleAcquire(inodeLock);
     if (inodes[handle].inUse != 1) {
         printf("DfsInodeReadBytes: ERROR. Tried to read bytes from an inode that is not in use.\n");
+        LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
+    LockHandleRelease(inodeLock);
 
     if (num_bytes < 0) {
         return DFS_FAIL;
@@ -588,10 +600,13 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         return DFS_FAIL;
     }
 
+    LockHandleAcquire(inodeLock);
     if (inodes[handle].inUse != 1) {
         printf("DfsInodeWriteBytes: ERROR. Tried to write bytes to an inode that is not in use.\n");
+        LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
+    LockHandleRelease(inodeLock);
 
     if (num_bytes < 0) {
         return DFS_FAIL;
@@ -659,10 +674,13 @@ uint32 DfsInodeFilesize(uint32 handle) {
         return DFS_FAIL;
     }
 
+    LockHandleAcquire(inodeLock);
     if (inodes[handle].inUse == 0) {
         printf("DfsInodeFilesize: ERROR, inode %d not in use.\n", handle);
+        LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
+    LockHandleRelease(inodeLock);
 
     return inodes[handle].fileSize;
 }
@@ -690,10 +708,13 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
         return DFS_FAIL;
     }
 
+    LockHandleAcquire(inodeLock);
     if (inodes[handle].inUse != 1) {
         printf("DfsInodeAllocateVirtualBlock: ERROR, inode %d not in use.\n", handle);
+        LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
+    LockHandleRelease(inodeLock);
 
     if (virtual_blocknum < DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE) {
         //One of the 10 direct blocks
@@ -783,10 +804,13 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
         return DFS_FAIL;
     }
 
+    LockHandleAcquire(inodeLock);
     if (inodes[handle].inUse == 0) {
         printf("DfsInodeTranslateVirtualToFilesys: ERROR, inode %d not in use.\n", handle);
+        LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
+    LockHandleRelease(inodeLock);
 
     if (virtual_blocknum < DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE) {
         if (inodes[handle].directAddressTranslations[virtual_blocknum] == 0 || CheckIfBlockAllocatedInFBV(inodes[handle].directAddressTranslations[virtual_blocknum]) != 1) {
