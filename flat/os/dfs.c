@@ -158,7 +158,7 @@ int DfsCloseFileSystem() {
     //Write inodes
     //8 inodes fit in 1 fs block
     //2 inodes fit in 1 disk block
-    printf("DfsCloseFileSystem: Writing inodes.\n");
+    printf("DfsCloseFileSystem: Writing inodes from block %d.\n", sb.inodesStartingBlockNumber);
     for (i = 0; i < sb.numberInodes/2; i++) {
         bcopy((char*)&inodes[i*2], (char*)block, DISK_BLOCKSIZE);
         //printf("Sanity check: inodes[%d] 0x%x, blockArray 0x%x, size %d bytes\n", i, &inodes[i], blockArray, sb.fileSystemBlockSize);
@@ -168,7 +168,7 @@ int DfsCloseFileSystem() {
     }
 
     //Write free block vector
-    printf("DfsCloseFileSystem: Writing fbv.\n");
+    printf("DfsCloseFileSystem: Writing fbv from block %d.\n", sb.freeBlockVectorStartingBlockNumber);
     for (i = 0; i < sb.numFBVBlocks*4; i++) {
         //64 uint32s fit in one 256 byte physical block
         bcopy((char*)&fbv[i*64], (char*)block, DISK_BLOCKSIZE);
