@@ -556,6 +556,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
 
         virtualBlockNumber = start_byte / DFS_BLOCKSIZE;
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
+        printf("DfsInodeWriteBytes: While loop. start byte: %d, virtual block: %d, virtual offset: %d.\n", start_byte, virtualBlockNumber, virtualByteOffset);
         
         //First, get to the actual direct block we need to be reading at
         if (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
