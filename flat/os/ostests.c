@@ -87,7 +87,9 @@ void RunOSTests() {
   }
   if (TESTS == 3) {
     //Delete all inodes
+    printf("Deleting all inodes.\n");
     for (i = 0; i < 256; i++) {
+      printf("Deleting inode %d.\n", i);
       DfsInodeDelete(i);
     }
   }
