@@ -237,7 +237,6 @@ uint32 DfsAllocateBlock() {
 //-----------------------------------------------------------------
 
 int DfsFreeBlock(uint32 blocknum) {
-    uint32 temp;
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -449,7 +448,7 @@ int DfsInodeDelete(uint32 handle) {
     if (inodes[handle].indirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by indirect address table
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
-        bcopy((char*)&singleIndirectBlock, singleIndirectTable, DFS_BLOCKSIZE);
+        bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
         for (i = 0; i < 256; i++) {
             if(singleIndirectTable[i] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectTable[i]) == 1) {
                 printf("DfsInodeDelete: Freeing indirect addr table[%d], fs block %d.\n", i, singleIndirectTable[i]);
@@ -465,11 +464,11 @@ int DfsInodeDelete(uint32 handle) {
     if (inodes[handle].doubleIndirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by tables pointed to within double address table
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectBlock);
-        bcopy((char*)&doubleIndirectBlock, doubleIndirectTable, DFS_BLOCKSIZE);
+        bcopy((char*)&doubleIndirectBlock, (char*)doubleIndirectTable, DFS_BLOCKSIZE);
         for (i = 0; i < 256; i++) {
             if (doubleIndirectTable[i] != 0 && CheckIfBlockAllocatedInFBV(doubleIndirectTable[i])) {
                 DfsReadBlock(doubleIndirectTable[i], &singleIndirectBlock);
-                bcopy((char*)&singleIndirectBlock, singleIndirectTable, DFS_BLOCKSIZE);
+                bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
                 for (j = 0; j < 256; j++) {
                     if (singleIndirectTable[j] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectTable[j]) == 1) {
                         printf("DfsInodeDelete: Freeing double indirect addr table [%d][%d], fs block %d.\n", i, j, singleIndirectTable[j]);
