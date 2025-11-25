@@ -160,6 +160,7 @@ int DfsCloseFileSystem() {
     printf("DfsCloseFileSystem: Writing inodes.\n");
     for (i = 0; i < sb.numberInodes; i += 8) {
         bcopy((char*)&inodes[i], (char*)blockArray, sb.fileSystemBlockSize);
+        printf("Sanity check: inodes[%d] 0x%x, blockArray 0x%x, size %d bytes\n", i, &inodes[i], blockArray, sb.fileSystemBlockSize);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4, &blockArray[0]);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+1, &blockArray[1]);
         DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+2, &blockArray[2]);
