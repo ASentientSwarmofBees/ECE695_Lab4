@@ -417,10 +417,14 @@ int DfsInodeDelete(uint32 handle) {
         return DFS_FAIL;
     }
 
+    printf("DfsInodeDelete 1\n");
+
     if (inodes[handle].inUse == 0) {
         printf("DfsInodeDelete: ERROR. Tried to delete an inode that is not in use.\n");
         return DFS_FAIL;
     }
+
+    printf("DfsInodeDelete 2\n");
 
     //de-allocate data blocks used by this inode
     for (i = 0; i < DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE; i++) {
@@ -428,6 +432,8 @@ int DfsInodeDelete(uint32 handle) {
             DfsFreeBlock(inodes[handle].directAddressTranslations[i]);
         }
     }
+
+    printf("DfsInodeDelete 3\n");
 
     //de-allocate indirect addressing blocks if in use
     if (CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber) == 1) {
