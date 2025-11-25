@@ -20,6 +20,8 @@ typedef struct dfs_block {
   char data[DFS_BLOCKSIZE];
 } dfs_block;
 
+#define DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE 10
+
 typedef struct dfs_inode {
   // STUDENT: put inode structure internals here
   // IMPORTANT: sizeof(dfs_inode) MUST return 128 in order to fit in enough
@@ -29,7 +31,7 @@ typedef struct dfs_inode {
   uint32 inUse; //boolean. an in use indicator to tell if an inode is free or in use
   uint32 fileSize; //the size of the file this inode represents (i.e. the maximum byte that has been written to this file)
   char fileName[FILE_MAX_FILENAME_LENGTH]; //the filename, which is just a string. size of 72 to make the whole inode 128 bytes 
-  uint32 directAddressTranslations[10]; //a table of direct address translations for the first 10 virtual blocks
+  uint32 directAddressTranslations[DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE]; //a table of direct address translations for the first 10 virtual blocks
   uint32 indirectAddressTableBlockNumber; //a block number of a file system block on the disk which holds a table of indirect address translations for the virtual blocks beyond the first 10.
   uint32 doubleIndirectAddressTableBlockNumber; //a block number of a file system block on the disk which holds a table of double-indirect address translations for the virtual blocks beyond the first 10 and blocks under single-indirect table.
 } dfs_inode;
