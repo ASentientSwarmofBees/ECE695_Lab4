@@ -739,7 +739,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
     }
 
     if (virtual_blocknum < DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE) {
-        if (CheckIfBlockAllocatedInFBV(inodes[handle].directAddressTranslations[virtual_blocknum])) {
+        if (CheckIfBlockAllocatedInFBV(inodes[handle].directAddressTranslations[virtual_blocknum]) != 1) {
             printf("DfsInodeTranslateVirtualToFilesys: ERROR. direct address table [%d] not allocated. (virtual block num %d)\n", virtual_blocknum, virtual_blocknum);
             return DFS_FAIL;
         }
