@@ -161,11 +161,11 @@ int DfsCloseFileSystem() {
     for (i = 0; i < sb.numberInodes; i += 8) {
         bcopy((char*)&inodes[i], (char*)blockArray, sb.fileSystemBlockSize);
         //printf("Sanity check: inodes[%d] 0x%x, blockArray 0x%x, size %d bytes\n", i, &inodes[i], blockArray, sb.fileSystemBlockSize);
-        printf("Sanity Check: saving inodes[%d]. blockArray entries are %d bytes. Saving at 0x%x, 0x%x, 0x%x, and 0x%x.\n", i, sizeof(blockArray[0]), sb.inodesStartingBlockNumber+i*4, sb.inodesStartingBlockNumber+i*4+1, sb.inodesStartingBlockNumber+i*4+2, sb.inodesStartingBlockNumber+i*4+3);
-        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4, &blockArray[0]);
-        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+1, &blockArray[1]);
-        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+2, &blockArray[2]);
-        DiskWriteBlock(sb.inodesStartingBlockNumber+i*4+3, &blockArray[3]);
+        printf("Sanity Check: saving inodes[%d]. blockArray entries are %d bytes. Saving at physical blocks %d, %d, %d, and %d.\n", i, sizeof(blockArray[0]), sb.inodesStartingBlockNumber*4+i*4, sb.inodesStartingBlockNumber*4+i*4+1, sb.inodesStartingBlockNumber*4+i*4+2, sb.inodesStartingBlockNumber*4+i*4+3);
+        DiskWriteBlock(sb.inodesStartingBlockNumber*4+i*4, &blockArray[0]);
+        DiskWriteBlock(sb.inodesStartingBlockNumber*4+i*4+1, &blockArray[1]);
+        DiskWriteBlock(sb.inodesStartingBlockNumber*4+i*4+2, &blockArray[2]);
+        DiskWriteBlock(sb.inodesStartingBlockNumber*4+i*4+3, &blockArray[3]);
     }
 
     //Write free block vector
