@@ -4,7 +4,7 @@
 #include "disk.h"
 #include "dfs.h"
 
-#define TESTS 3
+#define TESTS 2
 #define NUMBYTES 1024
 
 void RunOSTests() {
@@ -87,7 +87,7 @@ void RunOSTests() {
   }
   if (TESTS == 3) {
     //Delete all inodes
-    
+
     printf("Deleting all inodes.\n");
     for (i = 0; i < 256; i++) {
       printf("Deleting inode %d.\n", i);
