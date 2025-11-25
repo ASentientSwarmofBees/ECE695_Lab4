@@ -579,12 +579,9 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
             //There is room in the current block to finish writing everything we need to.
             bcopy((char*)(&mem + bytesWritten), &currDfsBlock.data[virtualByteOffset], num_bytes);
             DfsWriteBlock(fileSysBlockNumber, &currDfsBlock);
-            bytesWritten += virtualByteOffset;
-            num_bytes -= virtualByteOffset;
-            start_byte +=  virtualByteOffset;
-            if (num_bytes != 0) {
-                printf("DfsInodeWriteBytes: Something probably went wrong here. This should be the end of our write, but num_bytes (remaining) is %d instead of 0.\n", num_bytes);
-            }
+            bytesWritten += num_bytes;
+            num_bytes -= num_bytes;
+            start_byte +=  num_bytes;
         }
     }
 
