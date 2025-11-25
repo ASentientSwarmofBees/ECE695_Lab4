@@ -384,6 +384,7 @@ uint32 DfsInodeOpen(char *filename) {
 
     if ((handle = DfsInodeFilenameExists(filename)) != -1) {
         //Filename exists
+        printf("DfsInodeOpen: file %s already exists at handle %d.\n", filename, handle);
         return handle;
     }
 
@@ -393,7 +394,6 @@ uint32 DfsInodeOpen(char *filename) {
             // Free inode found
             handle = i;
             handleFound = 1;
-            LockHandleRelease(inodeLock);
             break;
         }
         LockHandleRelease(inodeLock);
