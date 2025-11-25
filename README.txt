@@ -10,7 +10,7 @@ PART 3
 Files edited: dfs.c, dfs_shared.h, ostests.c
 
 PART 4
-Files edited: ostests.c
+Files edited: ostests.c, files.c
 
 PART 5
 
