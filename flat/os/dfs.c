@@ -146,7 +146,6 @@ int DfsOpenFileSystem() {
 //-------------------------------------------------------------------
 
 int DfsCloseFileSystem() {
-    /*
     disk_block blockArray[4];
     disk_block *block;
     int i; //loop var
@@ -192,7 +191,6 @@ int DfsCloseFileSystem() {
     DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+3, &blockArray[3]); //physical block 262143
 
     DfsInvalidate();
-    */
     return DFS_SUCCESS;
 }
 

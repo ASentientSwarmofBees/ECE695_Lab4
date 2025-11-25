@@ -11,6 +11,8 @@ Files edited: dfs.c, dfs_shared.h, ostests.c
 
 PART 4
 Files edited: ostests.c, files.c
+Sources referenced: https://stackoverflow.com/questions/348170/how-do-i-undo-git-add-before-commit
+https://stackoverflow.com/questions/31281679/how-to-undo-local-changes-to-a-specific-file
 
 PART 5
 
