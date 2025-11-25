@@ -391,7 +391,6 @@ uint32 DfsInodeOpen(char *filename) {
 
     for (i = 0; i < sb.numberInodes; i++) {
         LockHandleAcquire(inodeLock);
-        printf("sanity check: handle %d inuse = %d\n", i, inodes[i].inUse);
         if (inodes[i].inUse == 0) {
             // Free inode found
             handle = i;
