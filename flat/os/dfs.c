@@ -499,7 +499,7 @@ int DfsInodeDelete(uint32 handle) {
     //mark inode as not in use
     printf("DfsInodeDelete: Marking inode %d as not in use. ", handle);
     LockHandleAcquire(inodeLock);
-    inodes[handle].inUse = 0;
+    inodes[handle].inUse = 0xFFFFFFFF;
     printf("inuse now = %d.\n", inodes[handle].inUse);
     LockHandleRelease(inodeLock);
 
