@@ -438,9 +438,9 @@ int DfsInodeDelete(uint32 handle) {
         LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
+    printf("DfsInodeDelete: Deleting inode handle %d, inUse == %d\n", handle, inodes[handle].inUse);
     LockHandleRelease(inodeLock);
 
-    printf("DfsInodeDelete: Deleting inode handle %d\n", handle);
 
     //de-allocate data blocks used by this inode
     for (i = 0; i < DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE; i++) {
