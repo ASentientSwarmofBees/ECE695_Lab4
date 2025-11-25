@@ -207,8 +207,6 @@ uint32 DfsAllocateBlock() {
     int blockNum;
     int i = 0;
 
-    printf("DfsAllocateBlock\n");
-
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
     }
@@ -644,7 +642,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
         return DFS_FAIL;
     }
 
-    if (virtual_blocknum <= DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE) {
+    if (virtual_blocknum < DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE) {
         //One of the 10 direct blocks
         if (inodes[handle].directAddressTranslations[virtual_blocknum] != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].directAddressTranslations[virtual_blocknum] == 1)) {
             printf("DfsInodeAllocateVirtualBlock: ERROR, directAddress[%d] is already allocated (fs block %d).\n", virtual_blocknum, inodes[handle].directAddressTranslations[virtual_blocknum]);
