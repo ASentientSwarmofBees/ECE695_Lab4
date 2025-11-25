@@ -161,7 +161,7 @@ int DfsCloseFileSystem() {
     for (i = 0; i < sb.numberInodes/2; i++) {
         bcopy((char*)&inodes[i*2], (char*)blockArray, sizeof(dfs_inode)*2);
         //printf("Sanity check: inodes[%d] 0x%x, blockArray 0x%x, size %d bytes\n", i, &inodes[i], blockArray, sb.fileSystemBlockSize);
-        printf("Sanity Check: saving inodes[%d]. sizeof(dfs_inode)*2 = %d bytes. blockArray[0] is %d bytes. Saving at physical block %d.\n", i, sizeof(dfs_inode)*2, sizeof(blockArray[0]), sb.inodesStartingBlockNumber*4+i);
+        //printf("Sanity Check: saving inodes[%d-%d]. sizeof(dfs_inode)*2 = %d bytes. blockArray[0] is %d bytes. Saving at physical block %d.\n", i*2, i*2+1, sizeof(dfs_inode)*2, sizeof(blockArray[0]), sb.inodesStartingBlockNumber*4+i);
         DiskWriteBlock(sb.inodesStartingBlockNumber*4+i, &blockArray[0]);
     }
 
