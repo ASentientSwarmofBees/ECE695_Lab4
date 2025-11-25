@@ -92,6 +92,7 @@ void RunOSTests() {
     for (i = 0; i < 256; i++) {
       //printf("Deleting inode %d.\n", i);
       DfsInodeDelete(i);
+      printf("Just testing: inode[%d].inUse == %d\n", i)
     }
   }
 }
