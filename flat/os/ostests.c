@@ -18,7 +18,7 @@ void RunOSTests() {
   char big[NUMBYTES];
   char big2[NUMBYTES];
 
-  printf("OS Tests Start\n");
+  printf("OS Tests Start (TESTS = %d)\n", TESTS);
 
   if (TESTS == 1) {
     //Test DFS functions
