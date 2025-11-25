@@ -439,7 +439,7 @@ int DfsInodeDelete(uint32 handle) {
         LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
-    printf("DfsInodeDelete: Deleting inode handle %d, inUse == %d\n", handle, inodes[handle].inUse);
+    printf("DfsInodeDelete: Deleting inode handle %d, inUse == %d @ 0x%x\n", handle, inodes[handle].inUse, &inodes[handle].inUse);
     LockHandleRelease(inodeLock);
 
 
