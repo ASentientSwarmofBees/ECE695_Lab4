@@ -242,7 +242,11 @@ int DfsFreeBlock(uint32 blocknum) {
         return DFS_FAIL;
     }
 
+    printf("DfsFreeBlock: %d\n", blocknum);
+
     LockHandleAcquire(fbvLock);
+
+    printf("DfsFreeBlock: Acquired fbvLock\n");
 
     if (CheckIfBlockAllocatedInFBV(blocknum) == 1) {
         fbv[blocknum / 32] &= ~(0x1 << (blocknum % 32));
