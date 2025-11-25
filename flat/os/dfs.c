@@ -411,6 +411,8 @@ uint32 DfsInodeOpen(char *filename) {
 int DfsInodeDelete(uint32 handle) {
     int i;
 
+    printf("DfsInodeDelete\n");
+
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
     }
