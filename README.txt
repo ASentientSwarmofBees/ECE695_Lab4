@@ -13,6 +13,7 @@ PART 4
 Files edited: ostests.c, files.c
 Sources referenced: https://stackoverflow.com/questions/348170/how-do-i-undo-git-add-before-commit
 https://stackoverflow.com/questions/31281679/how-to-undo-local-changes-to-a-specific-file
+https://stackoverflow.com/questions/6794110/git-revert-back-to-certain-commit
 
 PART 5
 
