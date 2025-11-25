@@ -384,7 +384,7 @@ uint32 DfsInodeOpen(char *filename) {
 
     if ((handle = DfsInodeFilenameExists(filename)) != -1) {
         //Filename exists
-        printf("DfsInodeOpen: file %s already exists at handle %d.\n", filename, handle);
+        printf("DfsInodeOpen: file '%s' already exists at handle %d.\n", filename, handle);
         return handle;
     }
 

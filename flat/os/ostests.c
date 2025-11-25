@@ -91,6 +91,12 @@ void RunOSTests() {
     printf("Deleting all inodes.\n");
     for (i = 0; i < 256; i++) {
       //printf("Deleting inode %d.\n", i);
+      if (i == 4) {
+        DfsInodeDelete(i);
+        DfsInodeDelete(i);
+        DfsInodeDelete(i);
+        DfsInodeDelete(i);
+      }
       DfsInodeDelete(i);
     }
   }
