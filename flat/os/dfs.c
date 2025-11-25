@@ -146,6 +146,7 @@ int DfsOpenFileSystem() {
 //-------------------------------------------------------------------
 
 int DfsCloseFileSystem() {
+    /*
     disk_block blockArray[4];
     disk_block *block;
     int i; //loop var
@@ -191,6 +192,7 @@ int DfsCloseFileSystem() {
     DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+3, &blockArray[3]); //physical block 262143
 
     DfsInvalidate();
+    */
     return DFS_SUCCESS;
 }
 
@@ -439,7 +441,7 @@ int DfsInodeDelete(uint32 handle) {
         LockHandleRelease(inodeLock);
         return DFS_FAIL;
     }
-    printf("DfsInodeDelete: Deleting inode handle %d, inUse == %d @ 0x%x\n", handle, inodes[handle].inUse, &inodes[handle].inUse);
+    printf("DfsInodeDelete: Deleting inode handle %d, inUse == %d\n", handle, inodes[handle].inUse);
     LockHandleRelease(inodeLock);
 
 

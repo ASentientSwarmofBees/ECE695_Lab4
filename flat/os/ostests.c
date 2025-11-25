@@ -18,6 +18,8 @@ void RunOSTests() {
   char big[NUMBYTES];
   char big2[NUMBYTES];
 
+  disk_block diskBlock;
+
   printf("OS Tests Start (TESTS = %d)\n", TESTS);
 
   if (TESTS == 1) {
@@ -91,13 +93,15 @@ void RunOSTests() {
     printf("Deleting all inodes.\n");
     for (i = 0; i < 256; i++) {
       //printf("Deleting inode %d.\n", i);
-      if (i == 4) {
-        DfsInodeDelete(i);
-        DfsInodeDelete(i);
-        DfsInodeDelete(i);
-        DfsInodeDelete(i);
-      }
       DfsInodeDelete(i);
+    }
+  }
+  if (TESTS == 4) {
+    // Delete the entire image
+    printf("Deleting disk.\n");
+    bzero((char*)&diskBlock, DISK_BLOCKSIZE);
+    for (i = 0; i < 262144; i++) {
+      DiskWriteBlock(i, &diskBlock);
     }
   }
 }
