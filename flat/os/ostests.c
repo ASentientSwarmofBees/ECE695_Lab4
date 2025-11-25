@@ -4,7 +4,7 @@
 #include "disk.h"
 #include "dfs.h"
 
-#define TESTS 2
+#define TESTS 3
 #define NUMBYTES 1024
 
 void RunOSTests() {
