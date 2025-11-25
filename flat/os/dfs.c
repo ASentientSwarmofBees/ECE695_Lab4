@@ -51,7 +51,7 @@ void DfsModuleInit() {
     DfsInvalidate();
     DfsOpenFileSystem();
     fbvLock = LockCreate();
-    inodeLock - LockCreate();
+    inodeLock = LockCreate();
 }
 
 //-----------------------------------------------------------------
@@ -176,7 +176,7 @@ int DfsCloseFileSystem() {
 
     printf("DfsCloseFileSystem: Writing superblock.\n");
     //Write superblock
-    bzero(blockArray, sb.fileSystemBlockSize);
+    bzero((char*)blockArray, sb.fileSystemBlockSize);
     bcopy((char*)&sb, (char*)blockArray, (int)sizeof(sb)); //changed from sb.fileSystemBlockSize to (int)sizeof(sb)
     DiskWriteBlock(4, &blockArray[0]);
     DiskWriteBlock(5, &blockArray[1]);
@@ -378,12 +378,12 @@ uint32 DfsInodeOpen(char *filename) {
         return DFS_FAIL;
     }
 
-    if (handle = DfsInodeFilenameExists(filename) != -1) {
+    if ((handle = DfsInodeFilenameExists(filename)) != -1) {
         //Filename exists
         return handle;
     }
 
-    for (int i = 0; i < sb.numberInodes; i++) {
+    for (i = 0; i < sb.numberInodes; i++) {
         if (inodes[i].inUse == 0) {
             // Free inode found
             handle = i;
@@ -497,14 +497,14 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         //Now, actually do the reading!
         if (virtualByteOffset + num_bytes > DFS_BLOCKSIZE) {
             //We are reading past the current block and will need to move on to the next block.
-            bcopy(&currDfsblock.data[virtualByteOffset], &mem + bytesRead, DFS_BLOCKSIZE - virtualByteOffset);
+            bcopy(&currDfsblock.data[virtualByteOffset], (char*)(&mem + bytesRead), DFS_BLOCKSIZE - virtualByteOffset);
             bytesRead += DFS_BLOCKSIZE - virtualByteOffset;
             num_bytes -= DFS_BLOCKSIZE - virtualByteOffset;
             start_byte += DFS_BLOCKSIZE - virtualByteOffset;
         }
         else {
             //There is room in the current block to finish reading everything we need to.
-            bcopy(&currDfsblock.data[virtualByteOffset], &mem + bytesRead, num_bytes);
+            bcopy(&currDfsblock.data[virtualByteOffset], (char*)(&mem + bytesRead), num_bytes);
             bytesRead += virtualByteOffset;
             num_bytes -= virtualByteOffset;
             start_byte +=  virtualByteOffset;
@@ -568,7 +568,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         //Now, actually do the writing!
         if (virtualByteOffset + num_bytes > DFS_BLOCKSIZE) {
             //We are reading past the current block and will need to move on to the next block.
-            bcopy(&mem + bytesWritten, &currDfsBlock.data[virtualByteOffset], DFS_BLOCKSIZE - virtualByteOffset);
+            bcopy((char*)(&mem + bytesWritten), &currDfsBlock.data[virtualByteOffset], DFS_BLOCKSIZE - virtualByteOffset);
             DfsWriteBlock(fileSysBlockNumber, &currDfsBlock);
             bytesWritten += DFS_BLOCKSIZE - virtualByteOffset;
             num_bytes -= DFS_BLOCKSIZE - virtualByteOffset;
@@ -576,7 +576,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         }
         else {
             //There is room in the current block to finish writing everything we need to.
-            bcopy(&mem + bytesWritten, &currDfsBlock.data[virtualByteOffset], num_bytes);
+            bcopy((char*)(&mem + bytesWritten), &currDfsBlock.data[virtualByteOffset], num_bytes);
             DfsWriteBlock(fileSysBlockNumber, &currDfsBlock);
             bytesWritten += virtualByteOffset;
             num_bytes -= virtualByteOffset;
@@ -629,6 +629,8 @@ uint32 DfsInodeFilesize(uint32 handle) {
 //-----------------------------------------------------------------
 
 uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
+    dfs_block doubleIndirectAddrBlock;
+    dfs_block singleIndirectAddrBlock;
     uint32 doubleIndirectAddrTable[256];
     uint32 singleIndirectAddrTable[256];
     uint32 indexWithinDoubleIndirectBlock;
@@ -661,14 +663,16 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             inodes[handle].indirectAddressTableBlockNumber = DfsAllocateBlock();
             printf("DfsInodeAllocateVirtualBlock: Allocated indirectAddressTable to fs block %d.\n", inodes[handle].indirectAddressTableBlockNumber);
         }
-        DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectAddrTable);
+        DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectAddrBlock);
+        bcopy((char*)&singleIndirectAddrBlock, singleIndirectAddrTable, DFS_BLOCKSIZE);
         if (CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[virtual_blocknum - 10]) == 1) {
             printf("DfsInodeAllocateVirtualBlock: ERROR. Virtual block num %d is already allocated. IndirectAddrTable[%d] = fs block %d.\n", virtual_blocknum, virtual_blocknum - 10, singleIndirectAddrTable[virtual_blocknum - 10]);
             return DFS_FAIL;
         }
         singleIndirectAddrTable[virtual_blocknum - 10] = DfsAllocateBlock();
         printf("DfsInodeAllocateVirtualBlock: allocated virtual block %d to fs block %d.\n", virtual_blocknum, singleIndirectAddrTable[virtual_blocknum - 10]);
-        DfsWriteBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectAddrTable);
+        bcopy(singleIndirectAddrTable, (char*)&singleIndirectAddrBlock, DFS_BLOCKSIZE);
+        DfsWriteBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectAddrBlock);
         return singleIndirectAddrTable[virtual_blocknum - 10];
     }
     else {
@@ -679,7 +683,8 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             printf("DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         }
-        DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrTable);
+        DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
+        bcopy((char*)&doubleIndirectAddrBlock, doubleIndirectAddrTable, DFS_BLOCKSIZE);
 
         indexWithinDoubleIndirectBlock = (virtual_blocknum - (256+10)) / 256;
         indexWithinSingleIndirectBlock = (virtual_blocknum - (256+10)) % 256;
@@ -689,9 +694,11 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             //If not allocated, need to allocate that first
             doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] = DfsAllocateBlock();
             printf("DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable[%d] to fs block %d.\n", indexWithinDoubleIndirectBlock, doubleIndirectAddrTable[indexWithinDoubleIndirectBlock]);
-            DfsWriteBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrTable);
+            bcopy(doubleIndirectAddrTable, (char*)&doubleIndirectAddrBlock, DFS_BLOCKSIZE);
+            DfsWriteBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
         }
-        DfsReadBlock(doubleIndirectAddrTable[indexWithinDoubleIndirectBlock], &singleIndirectAddrTable);
+        DfsReadBlock(doubleIndirectAddrTable[indexWithinDoubleIndirectBlock], &singleIndirectAddrBlock);
+        bcopy((char*)&singleIndirectAddrBlock, singleIndirectAddrTable, DFS_BLOCKSIZE);
 
         //Check if second indirect table[][] is already allocated
         if (CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[indexWithinSingleIndirectBlock]) == 1) {
@@ -700,7 +707,8 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
         }
         singleIndirectAddrTable[indexWithinSingleIndirectBlock] = DfsAllocateBlock();
         printf("DfsInodeAllocateVirtualBlock: allocated virtual block %d to fs block %d.\n", virtual_blocknum, singleIndirectAddrTable[indexWithinSingleIndirectBlock]);
-        DfsWriteBlock(doubleIndirectAddrTable[indexWithinDoubleIndirectBlock], &singleIndirectAddrTable);
+        bcopy(singleIndirectAddrTable, (char*)&singleIndirectAddrBlock, DFS_BLOCKSIZE);
+        DfsWriteBlock(doubleIndirectAddrTable[indexWithinDoubleIndirectBlock], &singleIndirectAddrBlock);
         return singleIndirectAddrTable[indexWithinSingleIndirectBlock];
     }
 }
