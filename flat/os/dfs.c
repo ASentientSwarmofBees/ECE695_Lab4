@@ -443,6 +443,7 @@ int DfsInodeDelete(uint32 handle) {
     }
 
     //de-allocate indirect addressing blocks if in use
+    printf("DfsInodeDelete: Checking if indirect table is in use\n");
     if (inodes[handle].indirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by indirect address table
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
@@ -458,6 +459,7 @@ int DfsInodeDelete(uint32 handle) {
         DfsFreeBlock(inodes[handle].indirectAddressTableBlockNumber);
     }
     inodes[handle].indirectAddressTableBlockNumber = 0;
+    printf("DfsInodeDelete: Checking if double indirect table is in use\n");
     if (inodes[handle].doubleIndirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by tables pointed to within double address table
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectBlock);
@@ -484,9 +486,11 @@ int DfsInodeDelete(uint32 handle) {
     inodes[handle].doubleIndirectAddressTableBlockNumber = 0;
 
     //mark inode as not in use
+    printf("DfsInodeDelete: Marking inode %d as not in use. ", handle);
     LockHandleAcquire(inodeLock);
     inodes[handle].inUse = 0;
     LockHandleRelease(inodeLock);
+    printf("inuse now = %d.\n", inodes[handle].inUse);
 
     return DFS_SUCCESS;
 }
