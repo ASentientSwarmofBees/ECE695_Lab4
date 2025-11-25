@@ -503,6 +503,12 @@ int DfsInodeDelete(uint32 handle) {
     printf("inuse now = %d.\n", inodes[handle].inUse);
     LockHandleRelease(inodeLock);
 
+    //Clear all other values in inode
+    inodes[handle].fileSize = 0;
+    for (i = 0; i < FILE_MAX_FILENAME_LENGTH; i++) {
+        inodes[handle].fileName[i] = "";
+    }
+
     return DFS_SUCCESS;
 }
 
