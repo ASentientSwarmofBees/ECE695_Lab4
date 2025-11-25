@@ -249,7 +249,12 @@ int DfsFreeBlock(uint32 blocknum) {
     printf("DfsFreeBlock: Acquired fbvLock\n");
 
     if (CheckIfBlockAllocatedInFBV(blocknum) == 1) {
-        printf("DfsFreeBlock: fs block %d is '1' in FBV. Attempting to evaluate fbv[%d] &= 0x%x\n", blocknum, blocknum / 32, ~(0x1 << (blocknum % 32)));
+        printf("DfsFreeBlock: fs block %d is '1' in FBV.\n", blocknum);
+        printf("Attempting to evaluate fbv[%d] ", blocknum / 32);
+        printf("[blocknum mod 32 : %d]", blocknum % 32);
+        printf("[0x1 << (blocknum mod 32) : 0x%x]", 0x1 << (blocknum % 32));
+        printf("[~(0x1 << (blocknum mod 32)) : 0x%x]", ~(0x1 << (blocknum % 32)));
+        printf("&= 0x%x", ~(0x1 << (blocknum % 32)));
         fbv[blocknum / 32] &= ~(0x1 << (blocknum % 32));
         printf("DfsFreeBlock: Deallocated fs block %d.\n", blocknum);
         LockHandleRelease(fbvLock);
