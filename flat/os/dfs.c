@@ -428,7 +428,7 @@ int DfsInodeDelete(uint32 handle) {
     }
 
     if (inodes[handle].inUse == 0) {
-        printf("DfsInodeDelete: ERROR. Tried to delete an inode that is not in use.\n");
+        printf("DfsInodeDelete: ERROR. Tried to delete an inode that is not in use. (handle: %d)\n", handle);
         return DFS_FAIL;
     }
 
