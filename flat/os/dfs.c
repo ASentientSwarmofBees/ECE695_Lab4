@@ -344,8 +344,6 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
 uint32 DfsInodeFilenameExists(char *filename) {
     int i;
 
-    printf("DfsInodeFilenameExists\n");
-
     if (sb.fileSystemValid != 1) {
         printf("DfsInodeFilenameExists: ERROR. File system not valid.\n");
         return DFS_FAIL;
@@ -552,6 +550,8 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         return 0;
     }
 
+    printf("DfsInodeWriteBytes: Writing %d bytes from start byte %d in inode %d.\n", num_bytes, start_byte, handle);
+
     while (num_bytes > 0) {
 
         virtualBlockNumber = start_byte / DFS_BLOCKSIZE;
@@ -560,6 +560,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         //First, get to the actual direct block we need to be reading at
         if (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
             //Block needs to be allocated
+            printf("DfsInodeWriteBytes: Allocating virtual block %d.\n", virtualBlockNumber);
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
@@ -647,7 +648,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
 
     if (virtual_blocknum <= DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE) {
         //One of the 10 direct blocks
-        if (CheckIfBlockAllocatedInFBV(inodes[handle].directAddressTranslations[virtual_blocknum] == 1)) {
+        if (inodes[handle].directAddressTranslations[virtual_blocknum] != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].directAddressTranslations[virtual_blocknum] == 1)) {
             printf("DfsInodeAllocateVirtualBlock: ERROR, directAddress[%d] is already allocated (fs block %d).\n", virtual_blocknum, inodes[handle].directAddressTranslations[virtual_blocknum]);
             return DFS_FAIL;
         }
@@ -658,14 +659,14 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     else if (virtual_blocknum <= (256+10-1)) { //265, DFS_BLOCKSIZE / sizeof(uint32) + DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE - 1
         //In first indirect table
         //Check if first indirect table is allocated yet
-        if (CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber) != 1) {
+        if (inodes[handle].indirectAddressTableBlockNumber == 0) {
             //If not allocated, need to allocate that first
             inodes[handle].indirectAddressTableBlockNumber = DfsAllocateBlock();
             printf("DfsInodeAllocateVirtualBlock: Allocated indirectAddressTable to fs block %d.\n", inodes[handle].indirectAddressTableBlockNumber);
         }
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectAddrBlock);
         bcopy((char*)&singleIndirectAddrBlock, (char*)singleIndirectAddrTable, DFS_BLOCKSIZE);
-        if (CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[virtual_blocknum - 10]) == 1) {
+        if (singleIndirectAddrTable[virtual_blocknum - 10] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[virtual_blocknum - 10]) == 1) {
             printf("DfsInodeAllocateVirtualBlock: ERROR. Virtual block num %d is already allocated. IndirectAddrTable[%d] = fs block %d.\n", virtual_blocknum, virtual_blocknum - 10, singleIndirectAddrTable[virtual_blocknum - 10]);
             return DFS_FAIL;
         }
@@ -678,7 +679,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     else {
         //In second indirect table
         //Check if second indirect table is allocated yet
-        if (CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) != 1) {
+        if (inodes[handle].doubleIndirectAddressTableBlockNumber == 0) {
             //If not allocated, need to allocate that first
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             printf("DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
@@ -690,7 +691,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
         indexWithinSingleIndirectBlock = (virtual_blocknum - (256+10)) % 256;
 
         //Check if second indirect table[] is allocated yet
-        if (CheckIfBlockAllocatedInFBV(doubleIndirectAddrTable[indexWithinDoubleIndirectBlock]) != 1) {
+        if (doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] == 0) {
             //If not allocated, need to allocate that first
             doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] = DfsAllocateBlock();
             printf("DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable[%d] to fs block %d.\n", indexWithinDoubleIndirectBlock, doubleIndirectAddrTable[indexWithinDoubleIndirectBlock]);
@@ -701,7 +702,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
         bcopy((char*)&singleIndirectAddrBlock, (char*)singleIndirectAddrTable, DFS_BLOCKSIZE);
 
         //Check if second indirect table[][] is already allocated
-        if (CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[indexWithinSingleIndirectBlock]) == 1) {
+        if (singleIndirectAddrTable[indexWithinSingleIndirectBlock] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[indexWithinSingleIndirectBlock]) == 1) {
             printf("DfsInodeAllocateVirtualBlock: ERROR. Virtual block num %d is already allocated. IndirectAddrTable[%d][%d] = fs block %d.\n", virtual_blocknum, indexWithinDoubleIndirectBlock, indexWithinSingleIndirectBlock, singleIndirectAddrTable[indexWithinSingleIndirectBlock]);
             return DFS_FAIL;
         }
