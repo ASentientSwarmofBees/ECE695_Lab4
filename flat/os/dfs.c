@@ -655,7 +655,8 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     else if (virtual_blocknum <= (256+10-1)) { //265, DFS_BLOCKSIZE / sizeof(uint32) + DIRECT_ADDRESS_TRANSLATIONS_TABLE_SIZE - 1
         //In first indirect table
         //Check if first indirect table is allocated yet
-        if (inodes[handle].indirectAddressTableBlockNumber == 0) {
+        printf("DfsInodeAllocateVirtualBlock: Checking if indirect address table has been allocated. Virtual block num: %d, indirect address table block number: %d.\n", virtual_blocknum, inodes[handle].indirectAddressTableBlockNumber);
+        if (inodes[handle].indirectAddressTableBlockNumber == 0 || CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber) != 1) {
             //If not allocated, need to allocate that first
             inodes[handle].indirectAddressTableBlockNumber = DfsAllocateBlock();
             printf("DfsInodeAllocateVirtualBlock: Allocated indirectAddressTable to fs block %d.\n", inodes[handle].indirectAddressTableBlockNumber);
