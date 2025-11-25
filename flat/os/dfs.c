@@ -506,7 +506,7 @@ int DfsInodeDelete(uint32 handle) {
     //Clear all other values in inode
     inodes[handle].fileSize = 0;
     for (i = 0; i < FILE_MAX_FILENAME_LENGTH; i++) {
-        inodes[handle].fileName[i] = "";
+        inodes[handle].fileName[i] = 0;
     }
 
     return DFS_SUCCESS;
