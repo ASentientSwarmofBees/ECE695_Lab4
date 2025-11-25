@@ -432,8 +432,8 @@ int DfsInodeDelete(uint32 handle) {
         if (inodes[handle].directAddressTranslations[i] != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].directAddressTranslations[i]) == 1) {
             printf("DfsINodeDelete: Freeing direct Addr table [%d], fs block %d\n", i, inodes[handle].directAddressTranslations[i]);
             DfsFreeBlock(inodes[handle].directAddressTranslations[i]);
-            inodes[handle].directAddressTranslations[i] = 0;
         }
+        inodes[handle].directAddressTranslations[i] = 0;
     }
 
     //de-allocate indirect addressing blocks if in use
@@ -445,13 +445,13 @@ int DfsInodeDelete(uint32 handle) {
             if(singleIndirectTable[i] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectTable[i]) == 1) {
                 printf("DfsInodeDelete: Freeing indirect addr table[%d], fs block %d.\n", i, singleIndirectTable[i]);
                 DfsFreeBlock(singleIndirectTable[i]);
-                singleIndirectTable[i] = 0;
             }
+            singleIndirectTable[i] = 0;
         }
         printf("DfsInodeDelete: Freeing indirect addr table, fs block %d.\n", inodes[handle].indirectAddressTableBlockNumber);
         DfsFreeBlock(inodes[handle].indirectAddressTableBlockNumber);
-        inodes[handle].indirectAddressTableBlockNumber = 0;
     }
+    inodes[handle].indirectAddressTableBlockNumber = 0;
     if (inodes[handle].doubleIndirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by tables pointed to within double address table
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectBlock);
@@ -464,18 +464,18 @@ int DfsInodeDelete(uint32 handle) {
                     if (singleIndirectTable[j] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectTable[j]) == 1) {
                         printf("DfsInodeDelete: Freeing double indirect addr table [%d][%d], fs block %d.\n", i, j, singleIndirectTable[j]);
                         DfsFreeBlock(singleIndirectTable[j]);
-                        singleIndirectTable[j] = 0;
                     }
+                    singleIndirectTable[j] = 0;
                 }
                 printf("DfsInodeDelete: Freeing indirect addr table[%d], fs block %d.\n", i, doubleIndirectTable[i]);
                 DfsFreeBlock(doubleIndirectTable[i]);
-                doubleIndirectTable[i] = 0;
             }
+            doubleIndirectTable[i] = 0;
         }
         printf("DfsInodeDelete: Freeing indirect addr table, fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsFreeBlock(inodes[handle].doubleIndirectAddressTableBlockNumber);
-        inodes[handle].doubleIndirectAddressTableBlockNumber = 0;
     }
+    inodes[handle].doubleIndirectAddressTableBlockNumber = 0;
 
     //mark inode as not in use
     LockHandleAcquire(inodeLock);
