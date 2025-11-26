@@ -581,14 +581,14 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         //Now, actually do the reading!
         if (virtualByteOffset + num_bytes > DFS_BLOCKSIZE) {
             //We are reading past the current block and will need to move on to the next block.
-            bcopy(&currDfsblock.data[virtualByteOffset], (char*)(&mem + bytesRead), DFS_BLOCKSIZE - virtualByteOffset);
+            bcopy((char*)&currDfsblock.data[virtualByteOffset], (char*)(&mem + bytesRead), DFS_BLOCKSIZE - virtualByteOffset);
             bytesRead += DFS_BLOCKSIZE - virtualByteOffset;
             num_bytes -= DFS_BLOCKSIZE - virtualByteOffset;
             start_byte += DFS_BLOCKSIZE - virtualByteOffset;
         }
         else {
             //There is room in the current block to finish reading everything we need to.
-            bcopy(&currDfsblock.data[virtualByteOffset], (char*)(&mem + bytesRead), num_bytes);
+            bcopy((char*)&currDfsblock.data[virtualByteOffset], (char*)(&mem + bytesRead), num_bytes);
             bytesRead += DFS_BLOCKSIZE - virtualByteOffset;
             num_bytes -= DFS_BLOCKSIZE - virtualByteOffset;
             start_byte +=  DFS_BLOCKSIZE - virtualByteOffset;
