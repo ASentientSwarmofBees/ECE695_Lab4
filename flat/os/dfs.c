@@ -253,15 +253,15 @@ int DfsFreeBlock(uint32 blocknum) {
         return DFS_FAIL;
     }
 
-    printf("DfsFreeBlock: %d\n", blocknum);
+    //printf("DfsFreeBlock: %d\n", blocknum);
 
     if (CheckIfBlockAllocatedInFBV(blocknum) == 1) {
-        printf("DfsFreeBlock: fs block %d is '1' in FBV.\n", blocknum);
+        //printf("DfsFreeBlock: fs block %d is '1' in FBV.\n", blocknum);
         LockHandleAcquire(fbvLock);
         fbv[blocknum / 32] &= invert(0x1 << (blocknum % 32));
-        printf("test");
         LockHandleRelease(fbvLock);
         printf("DfsFreeBlock: Deallocated fs block %d.\n", blocknum);
+        
         return DFS_SUCCESS;
     }
     else {
