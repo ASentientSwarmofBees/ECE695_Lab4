@@ -79,7 +79,7 @@ void RunOSTests() {
     for(a=0; a<NUMBYTES; a++) {
       if (big[a] != big2[a]) {
         printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", a, a, big[a], big2[a]);
-        //GracefulExit();
+        GracefulExit();
       }
     }
     printf("runostests: ece595-file-1 ops worked!\n");
