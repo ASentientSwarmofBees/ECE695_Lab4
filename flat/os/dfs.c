@@ -229,6 +229,8 @@ int DfsCloseFileSystem() {
     DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+3, &blockArray[3]); //physical block 262143
 
     DfsInvalidate();
+
+    dbprintf('m', "This is a test of dbprintf. %d", 0);
     return DFS_SUCCESS;
 }
 
