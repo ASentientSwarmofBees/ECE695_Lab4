@@ -35,11 +35,14 @@ void main (int argc, char *argv[])
   // You can use dfs_invalidate(); but it will be implemented in Problem 2. You can just do 
   Printf("fdisk (%d): Beginning disk initialization.\n", getpid(), disksize);
   sb.fileSystemValid = 0;
+  Printf("fdisk (%d): Setting fileSystemValid to %d.\n", getpid(), sb.fileSystemValid);
   disksize = disk_size(); //0x4000000; //64MB
   diskblocksize = disk_blocksize(); //256
   Printf("fdisk (%d): Disk size: 0x%x bytes, Disk block size: %d bytes.\n", getpid(), disksize, diskblocksize);
   sb.fileSystemBlockSize = 1024;
+  Printf("fdisk (%d): Setting fileSystemBlockSize to %d.\n", getpid(), sb.fileSystemBlockSize);
   sb.numberFileSystemBlocks = 0x10000;  // 65536 blocks (64MB / 1024)
+  Printf("fdisk (%d): Setting numberFileSystemBlocks to %d.\n", getpid(), sb.numberFileSystemBlocks);
 
   // Make sure the disk exists before doing anything else
   Printf("fdisk (%d): Creating disk.\n", getpid());
@@ -49,7 +52,9 @@ void main (int argc, char *argv[])
   // Write all inodes as not in use and empty (all zeros)
   Printf("fdisk (%d): Zeroing inodes.\n", getpid());
   sb.inodesStartingBlockNumber = FDISK_INODE_BLOCK_START;
+  Printf("fdisk (%d): Setting inodesStartingBlockNumber to %d.\n", getpid(), sb.inodesStartingBlockNumber);
   sb.numberInodes = FDISK_NUM_INODES;
+  Printf("fdisk (%d): Setting numberInodes to %d.\n", getpid(), sb.numberInodes);
   //inode array is file system blocks 2-33, physical blocks 8-135
   for (i = 0; i < 32; i++) { //32 pages of inodes
     FdiskWriteZerosToFileSystemBlock(FDISK_INODE_BLOCK_START+i);
@@ -59,7 +64,9 @@ void main (int argc, char *argv[])
   Printf("fdisk (%d): Writing FBV to disk.\n", getpid());
   //free block vector is file system blocks 34-41, physical blocks 136-167
   sb.freeBlockVectorStartingBlockNumber = FDISK_FBV_BLOCK_START;
+  Printf("fdisk (%d): Setting freeBlockVectorStartingBlockNumber to %d.\n", getpid(), sb.freeBlockVectorStartingBlockNumber);
   sb.numFBVBlocks = 8;
+  Printf("fdisk (%d): Setting numFBVBlocks to %d.\n", getpid(), sb.numFBVBlocks);
   //Setting up FBV to mark blocks 0-41 and 65535 in use 
   for (i = 0; i < DFS_FBV_MAX_NUM_WORDS; i++) {
     fbv[i] = 0x0;
@@ -74,6 +81,7 @@ void main (int argc, char *argv[])
 
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
   sb.fileSystemValid = 1;
+  Printf("fdisk (%d): Setting fileSystemValid to %d.\n", getpid(), sb.fileSystemValid);
   // boot record is all zeros in the first FILE system block (physical blocks 0-3), and superblock structure goes into the second FILE system block (physical blocks 4-7)
   Printf("fdisk (%d): Writing boot record and superblock to disk.\n", getpid());
   FdiskWriteZerosToFileSystemBlock(0);
