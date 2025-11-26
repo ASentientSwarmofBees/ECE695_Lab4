@@ -89,6 +89,7 @@ void main (int argc, char *argv[])
   FdiskWriteFileSystemBlock(1, sb_dfsblock); //fs block 1 is the superblock
   FdiskWriteFileSystemBlock(65535, sb_dfsblock); //copy the superblock also to file system block 65535, where the copy of the superblock goes (physical blocks 262140-262143)
   Printf("fdisk (%d): Formatted DFS disk for 0x%x bytes.\n", getpid(), disksize);
+  DfsInvalidate();
 }
 
 int FdiskWriteFileSystemBlock(uint32 fsblocknum, dfs_block *b) {
