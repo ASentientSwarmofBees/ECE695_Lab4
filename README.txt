@@ -39,6 +39,8 @@ By default, only the Cache Miss messages will print. To see all of my debug mess
 	cd ../../bin; dlxsim -x os.dlx.obj -a -D F -u ostests.dlx.obj; ee469_fixterminal
 to:
 	cd ../../bin; dlxsim -x os.dlx.obj -a -D zF -u ostests.dlx.obj; ee469_fixterminal
+The latency calculation in my "Cache Miss" print message does not work. I haven't gotten clock.c stuff to work.
+The eviction policy that I used for this part was tracking which block had been accessed the LEAST number of total times since it was first cached.
 Files edited: dfs.c, files.c
 
 PART 8
