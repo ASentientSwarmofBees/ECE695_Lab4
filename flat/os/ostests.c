@@ -4,7 +4,7 @@
 #include "disk.h"
 #include "dfs.h"
 
-#define TESTS 5
+#define TESTS 6
 #define NUMUINTS 300
 #define NUMUINTSBIG 15000
 
@@ -167,6 +167,34 @@ void RunOSTests() {
     for (i = 0; i < NUMUINTSBIG; i++) {
       if (testBigUintArray[i] != testBigUintArray2[i]) {
         printf("runostests: FAIL: array[%d] != array2[%d] (%d != %d)\n", i, i, testBigUintArray[i], testBigUintArray2[i]);
+        fail = 1;
+        break;
+      }
+    }
+    if (fail == 1) {
+      return;
+    }
+    printf("runostests: ece595-file-1 ops worked!\n");
+    DfsInodeDelete(inode);
+    inode = DfsInodeOpen("ece595-file-2");
+    printf("runostests: ece595-file-2 open, inode = %d\n", inode);
+    DfsInodeDelete(inode);
+  }
+  if (TESTS == 6) {
+    //ostests example code, testingInodes
+
+    printf("Testing Inode Functions WITH NON 4 BYTE ALIGNED ADDRESSES\n");
+    inode = DfsInodeOpen("ece695-file-1");
+    printf("runostests: inode after open is %d\n", inode);
+    for(i = 0; i < NUMUINTS; i++) {
+      testUintArray[i] = i;
+    }
+    DfsInodeWriteBytes(inode, testUintArray, 1, NUMUINTS*4);
+    DfsInodeReadBytes(inode, testUintArray2, 1, NUMUINTS*4);
+    printf("runostests: checking data at start byte %d.\n", 1);
+    for (i = 0; i < NUMUINTS; i++) {
+      if (testUintArray[i] != testUintArray2[i]) {
+        printf("runostests: FAIL: array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
         fail = 1;
         break;
       }
