@@ -6,6 +6,7 @@
 #include "dfs.h"
 #include "synch.h"
 #include "files.h" //Added just so DfsModuleInit() can call my new function FileInitLock(), because I need some way to tell files.c to init the lock the first time it's used
+#include "clock.h"
 
 #define DFS_INODE_MAX_NUM 256
 #define DFS_FBV_MAX_NUM_WORDS 2048
@@ -31,6 +32,7 @@ static uint32 cacheStatistics_NumHits = 0;
 static uint32 cacheStatistics_NumMisses = 0;
 static uint32 cacheStatistics_NumDiskReads = 0;
 static uint32 cacheStatistics_NumDiskWrites = 0;
+static double cacheStatistics_totalTimeSpentOnCacheMisses = 0.0;
 
 // You have already been told about the most likely places where you should use locks. You may use 
 // additional locks if it is really necessary.
@@ -53,6 +55,8 @@ void PrintSBTest();
 int DfsCacheHit(int blocknum);
 int DfsCacheAllocateSlot(int blocknum);
 int DfsCacheFlush();
+void SimulateDiskAccessTimeAndWait4MS();
+void PrintCacheMissMessage();
 
 //-----------------------------------------------------------------
 // DfsModuleInit is called at boot time to initialize things and
@@ -78,6 +82,8 @@ void DfsModuleInit() {
         bufferCacheNumAccesses[i] = 0;
     }
     LockHandleRelease(bufferLock);
+    ClkModuleInit();
+    ClkStart();
 }
 
 //-----------------------------------------------------------------
@@ -316,6 +322,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     int cacheIndex;
     int val = 0;
     disk_block blockArray[4];
+    double timeOfCacheMissStart;
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -331,20 +338,22 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         val = sb.fileSystemBlockSize;
     }
     else {
+        timeOfCacheMissStart = ClkGetCurTime();
         //Block is not in cache and must be loaded in
         cacheIndex = DfsCacheAllocateSlot(blocknum);
-
         val += DiskReadBlock(blocknum*4, &blockArray[0]);
         val += DiskReadBlock(blocknum*4+1, &blockArray[1]);
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
+        SimulateDiskAccessTimeAndWait4MS();
         cacheStatistics_NumDiskReads++;
         //dbprintf('z', "SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             dbprintf('z', "DfsReadBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
         }
-        PrintCacheMissMessage(0);
+        cacheStatistics_totalTimeSpentOnCacheMisses += ClkGetCurTime() - timeOfCacheMissStart;
+        PrintCacheMissMessage(cacheStatistics_totalTimeSpentOnCacheMisses/cacheStatistics_NumMisses);
     }
     bcopy((char*)&bufferCache[cacheIndex], (char*)b, sb.fileSystemBlockSize);
     LockHandleAcquire(bufferLock);
@@ -405,6 +414,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
     int cacheIndex;
+    double timeOfCacheMissStart;
     
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -420,6 +430,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         val = sb.fileSystemBlockSize;
     }
     else {
+        timeOfCacheMissStart = ClkGetCurTime();
         //Block is not in cache and must written to
         cacheIndex = DfsCacheAllocateSlot(blocknum);
 
@@ -428,12 +439,14 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskReads++;
+        SimulateDiskAccessTimeAndWait4MS();
         //dbprintf('z', "SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             dbprintf('z', "DfsWriteBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
         }
-        PrintCacheMissMessage(0);
+        cacheStatistics_totalTimeSpentOnCacheMisses += ClkGetCurTime() - timeOfCacheMissStart;
+        PrintCacheMissMessage(cacheStatistics_totalTimeSpentOnCacheMisses/cacheStatistics_NumMisses);
     }
 
     bcopy((char*)b, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
@@ -1078,6 +1091,7 @@ int DfsCacheAllocateSlot(int blocknum) {
         bytesWritten += DiskWriteBlock(blocknum*4+2, &blockArray[2]);
         bytesWritten += DiskWriteBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskWrites++;
+        SimulateDiskAccessTimeAndWait4MS();
         if (bytesWritten != sb.fileSystemBlockSize) {
             dbprintf('z', "DfsCacheAllocateSlot: ERROR. Tried to write dirty cache to disk. Tried to write %d bytes, but only wrote %d. (this is a non-terminating error)\n", sb.fileSystemBlockSize, bytesWritten);
         }
@@ -1118,10 +1132,17 @@ int DfsCacheFlush() {
     return DFS_SUCCESS;
 }
 
-void PrintCacheMissMessage(int latencyInMS) {
+void PrintCacheMissMessage(double latencyInSeconds) {
     double hit_rate, miss_rate;
     hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
     miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
-    printf("###Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, ", hit_rate, miss_rate);
-    printf("Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInMS);
+    printf("Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, ", hit_rate, miss_rate);
+    printf("Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInSeconds/1000);
+}
+
+void SimulateDiskAccessTimeAndWait4MS() {
+    double startTime = ClkGetCurTime();
+    while ((ClkGetCurTime() - startTime) < 0.004) {
+        //do nothing
+    }
 }
