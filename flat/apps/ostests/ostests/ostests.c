@@ -30,5 +30,7 @@ void main (int argc, char *argv[])
       return;
     }
   }
+  file_close(handle1);
+  file_delete("file_test_1");
   Printf("File Tests: Passed Test 1!\n");
 }

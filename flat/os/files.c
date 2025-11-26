@@ -272,6 +272,10 @@ int FileDelete(char *filename) {
     }
     //File has been found.
     //Should this check if process id matches?
+    if (files[handle].isOpen == 1) {
+        printf("FileDelete (%d), ERROR. File '%s' is currently open. Close it first.\n", GetCurrentPid(), filename);
+        return FILE_FAIL;
+    }
     printf("FileDelete (%d): Deleting file '%s' at handle %d.\n", GetCurrentPid(), files[handle].fileName, handle);
     LockHandleAcquire(fdLock);
     files[handle].inUse = 0;
