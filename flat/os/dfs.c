@@ -1143,7 +1143,8 @@ void PrintCacheMissMessage(double latencyInSeconds) {
 
 void SimulateDiskAccessTimeAndWait4MS() {
     double startTime = ClkGetCurTime();
-    dbprintf('z', "SimulateDiskAccessteimAndWait%dMS\n", 4);
+    ClkStart();
+    dbprintf('z', "SimulateDiskAccessTimeAndWait%dMS\n", 4);
     while ((ClkGetCurTime() - startTime) < 0.004) {
         //do nothing
     }
