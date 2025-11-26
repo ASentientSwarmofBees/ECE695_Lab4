@@ -108,10 +108,10 @@ close the given file descriptor handle. Return FILE_FAIL on failure, and FILE_SU
 */
 int FileClose(int handle) {
     if (files[handle].isOpen == 1) {
-        printf("FileClose (%d): Closing file.\n");
+        printf("FileClose (%d): Closing file.\n", GetCurrentPid());
         files[handle].isOpen = 0;
         files[handle].processID = -1;
-        files[handle].mode = "n";
+        files[handle].mode = 'n';
         return FILE_SUCCESS;
     }
     else {
@@ -147,7 +147,7 @@ int FileRead(int handle, void *mem, int num_bytes) {
         return FILE_FAIL;
     }
     if (files[handle].eof == 1) {
-        printf("FileRead (%d): ERROR. EOF flag is set in file '%s'.\n", GetCurrentPid(), num_bytes, files[handle].fileName);
+        printf("FileRead (%d): ERROR. EOF flag is set in file '%s'.\n", GetCurrentPid(), files[handle].fileName);
         return FILE_FAIL;
     }
     if (files[handle].mode != 'r') {
