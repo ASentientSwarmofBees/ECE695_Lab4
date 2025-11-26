@@ -145,10 +145,12 @@ int DfsOpenFileSystem() {
     // CHECK IF ANY INODES ARE IN USE
     dbprintf('z', "Checking if any inode are in use.\n");
     for (i = 0; i < sb.numberInodes; i++) {
+        printf("test2\n");
         if (inodes[i].inUse != 0) {
             dbprintf('z', "inode %d in use = %d. filesize %d, filename '%s', direct addresses %d, %d, %d... indirect tables %d, %d.\n", i, inodes[i].inUse, inodes[i].fileSize, inodes[i].fileName, inodes[i].directAddressTranslations[0], inodes[i].directAddressTranslations[1], inodes[i].directAddressTranslations[2], inodes[i].indirectAddressTableBlockNumber, inodes[i].doubleIndirectAddressTableBlockNumber);
         }
     }
+    printf("test1\n");
 
 // Read free block vector
     for (i = 0; i < sb.numFBVBlocks; i++) {
@@ -159,6 +161,8 @@ int DfsOpenFileSystem() {
         //each file system block is 1024 bytes, so 256 uint32s
         bcopy((char*)blockArray, (char*)&fbv[i*256], sb.fileSystemBlockSize); //TODO INCONSISTENCY IN WHETHER OR NOT IM ADDRESSING AAAAAAAAA
     }
+
+    printf("test3\n");
 
 // Change superblock to be invalid, write back to disk, then change 
 // it back to be valid in memory
@@ -174,6 +178,8 @@ int DfsOpenFileSystem() {
     DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+1, &blockArray[1]);
     DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+2, &blockArray[2]);
     DiskWriteBlock((DFS_MAX_FILESYSTEM_SIZE/DFS_BLOCKSIZE-1)*4+3, &blockArray[3]);
+
+    printf("test4\n");
 
     sb.fileSystemValid = 1;
     return DFS_SUCCESS;
