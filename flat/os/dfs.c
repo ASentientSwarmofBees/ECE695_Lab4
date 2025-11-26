@@ -339,7 +339,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskReads++;
-        printf("SANITY CHECK: DISKREADS INC: %d", cacheStatistics_NumDiskReads);
+        printf("SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             printf("DfsReadBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
@@ -428,7 +428,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskReads++;
-        printf("SANITY CHECK: DISKREADS INC: %d", cacheStatistics_NumDiskReads);
+        printf("SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             printf("DfsWriteBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
@@ -1121,5 +1121,6 @@ void PrintCacheMissMessage(int latencyInMS) {
     double hit_rate, miss_rate;
     hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
     miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
-    printf("###Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", hit_rate, miss_rate, cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInMS);
+    printf("###Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, ", hit_rate, miss_rate);
+    printf("Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInMS);
 }
