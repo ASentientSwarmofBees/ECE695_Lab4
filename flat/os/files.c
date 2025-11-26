@@ -52,7 +52,7 @@ int FileOpen(char *filename, char *mode) {
                 return FILE_FAIL;
             }
             files[existingFileHandle].isOpen = 1;
-            
+
             files[existingFileHandle].mode = mode[0];
             files[existingFileHandle].processID = GetCurrentPid();
             printf("FileOpen (%d): Opening file '%s' at handle %d for read.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
@@ -173,6 +173,7 @@ int FileRead(int handle, void *mem, int num_bytes) {
     else {
         printf("FileRead (%d): Attempted to read %d bytes from file '%s', but read %d bytes instead.\n", GetCurrentPid(), num_bytes, files[handle].fileName, bytesRead);
     }
+    files[handle].currentPosition += bytesRead;
     return bytesRead;
 }
 
@@ -216,6 +217,7 @@ int FileWrite(int handle, void *mem, int num_bytes) {
     else {
         printf("FileWrite (%d): Attempted to write %d bytes to file '%s', but wrote %d bytes instead.\n", GetCurrentPid(), num_bytes, files[handle].fileName, bytesWritten);
     }
+    files[handle].currentPosition += bytesWritten;
     return bytesWritten;
 }
 
