@@ -654,7 +654,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         //Now, actually do the writing!
         if (virtualByteOffset + num_bytes > DFS_BLOCKSIZE) {
             //We are reading past the current block and will need to move on to the next block.
-            bcopy((char*)(&mem + bytesWritten), &currDfsBlock.data[virtualByteOffset], DFS_BLOCKSIZE - virtualByteOffset);
+            bcopy((char*)(&mem + bytesWritten), (char*)&currDfsBlock.data[virtualByteOffset], DFS_BLOCKSIZE - virtualByteOffset);
             DfsWriteBlock(fileSysBlockNumber, &currDfsBlock);
             bytesWritten += DFS_BLOCKSIZE - virtualByteOffset;
             num_bytes -= DFS_BLOCKSIZE - virtualByteOffset;
@@ -662,7 +662,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         }
         else {
             //There is room in the current block to finish writing everything we need to.
-            bcopy((char*)(&mem + bytesWritten), &currDfsBlock.data[virtualByteOffset], num_bytes);
+            bcopy((char*)(&mem + bytesWritten), (char*)&currDfsBlock.data[virtualByteOffset], num_bytes);
             DfsWriteBlock(fileSysBlockNumber, &currDfsBlock);
             bytesWritten += num_bytes;
             num_bytes -= num_bytes;
