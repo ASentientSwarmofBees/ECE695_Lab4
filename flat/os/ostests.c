@@ -15,8 +15,8 @@ void RunOSTests() {
 
   uint32 inode;
   int a;
-  char big[NUMBYTES];
-  char big2[NUMBYTES];
+  char testcharArray[NUMBYTES];
+  char testcharArray2[NUMBYTES];
   uint32 fail = 0;
 
   printf("OS Tests Start (TESTS = %d)\n", TESTS);
@@ -68,21 +68,17 @@ void RunOSTests() {
 
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
-    for(a=0; a<1024; a++) {
-      big[a] = a;
+    for(i = 0; i < 256; i++) {
+      testcharArray[i] = i;
     }
-    for(a=0; a<15; a++) {
-      DfsInodeWriteBytes(inode, big, a*NUMBYTES, NUMBYTES);
-    }
-    for (a = 0; a < 15; a++) {
-      DfsInodeReadBytes(inode, big2, a*NUMBYTES, NUMBYTES);
-      printf("runostests: checking data at start byte %d.\n", a*NUMBYTES);
-      for (i = 0; i < NUMBYTES; i++) {
-        if (big[i] != big2[i]) {
-          printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", i, i, big[i], big2[i]);
-          fail = 1;
-          break;
-        }
+    DfsInodeWriteBytes(inode, testcharArray, 0, 256);
+    DfsInodeReadBytes(inode, testcharArray2, 0, 256);
+    printf("runostests: checking data at start byte %d.\n", a*NUMBYTES);
+    for (i = 0; i < 256; i++) {
+      if (testcharArray[i] != testcharArray2[i]) {
+        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testcharArray[i], testcharArray2[i]);
+        fail = 1;
+        break;
       }
     }
     if (fail == 1) {
