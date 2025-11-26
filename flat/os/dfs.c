@@ -1041,7 +1041,7 @@ int DfsCacheAllocateSlot(int blocknum) {
     }
 
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
-        if (bufferCacheBlockNums[i] = -1) {
+        if (bufferCacheBlockNums[i] == -1) {
             bufferCacheBlockNums[i] = blocknum;
             printf("DfsCacheAllocateSlot: Allocating slot %d for blocknum %d.\n", i, blocknum);
             return i;
@@ -1052,7 +1052,7 @@ int DfsCacheAllocateSlot(int blocknum) {
     //CURRENT EVICTION POLICY: BLOCKS WHICH HAVE BEEN USED THE LEAST NUMBER OF TIMES
     lowest_found_num_accesses = bufferCacheNumAccesses[0];
     index = 0;
-    for (int i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+    for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheNumAccesses[i] < lowest_found_num_accesses) {
             lowest_found_num_accesses = bufferCacheNumAccesses[i];
             index = i;
