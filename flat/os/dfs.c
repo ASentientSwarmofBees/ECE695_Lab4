@@ -652,7 +652,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         DfsReadBlock(fileSysBlockNumber, &currDfsBlock);
 
         //Now, actually do the writing!
-        printf("SANITY CHECK: mem 0x%x, mem + byteswritten 0x%x\n", &mem, (char*)(&mem) + bytesWritten);
+        printf("SANITY CHECK: mem 0x%x, mem + byteswritten 0x%x\n", mem, (char*)(mem) + bytesWritten);
         if (virtualByteOffset + num_bytes > DFS_BLOCKSIZE) {
             //We are reading past the current block and will need to move on to the next block.
             bcopy((char*)(&mem) + bytesWritten, (char*)&currDfsBlock.data[virtualByteOffset], DFS_BLOCKSIZE - virtualByteOffset);
