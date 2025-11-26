@@ -69,6 +69,7 @@ void RunOSTests() {
   if (TESTS == 2) {
     //ostests example code, testingInodes
 
+    printf("Testing Inode Functions");
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
     for(i = 0; i < NUMUINTS; i++) {
@@ -91,5 +92,59 @@ void RunOSTests() {
     DfsInodeDelete(inode);
     inode = DfsInodeOpen("ece595-file-2");
     printf("runostests: ece595-file-2 open, inode = %d\n", inode);
+    DfsInodeDelete(inode);
+  }
+  if (TESTS == 3) {
+    //ostests example code, testingInodes
+    //DOES NOT DELETE
+    printf("Testing Inodes, WIHTOUT DELETE");
+    inode = DfsInodeOpen("ece695-file-1");
+    printf("runostests: inode after open is %d\n", inode);
+    for(i = 0; i < NUMUINTS; i++) {
+      testUintArray[i] = i;
+    }
+    DfsInodeWriteBytes(inode, testUintArray, 0, NUMUINTS*4);
+    DfsInodeReadBytes(inode, testUintArray2, 0, NUMUINTS*4);
+    printf("runostests: checking data at start byte %d.\n", 0);
+    for (i = 0; i < NUMUINTS; i++) {
+      if (testUintArray[i] != testUintArray2[i]) {
+        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
+        fail = 1;
+        break;
+      }
+    }
+    if (fail == 1) {
+      return;
+    }
+    printf("runostests: ece595-file-1 ops worked!\n");
+    //DfsInodeDelete(inode);
+    inode = DfsInodeOpen("ece595-file-2");
+    printf("runostests: ece595-file-2 open, inode = %d\n", inode);
+    DfsInodeDelete(inode);
+  }
+  if (TESTS == 4) {
+    //ostests example code, testingInodes
+    //DOES NOT WRITE, READS WHAT WAS WRITTEN PREVIOUSLY
+
+    inode = DfsInodeOpen("ece695-file-1");
+    printf("runostests: inode after open is %d\n", inode);
+    for(i = 0; i < NUMUINTS; i++) {
+      testUintArray[i] = i;
+    }
+    //DfsInodeWriteBytes(inode, testUintArray, 0, NUMUINTS*4);
+    DfsInodeReadBytes(inode, testUintArray2, 0, NUMUINTS*4);
+    printf("runostests: checking data at start byte %d.\n", 0);
+    for (i = 0; i < NUMUINTS; i++) {
+      if (testUintArray[i] != testUintArray2[i]) {
+        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
+        fail = 1;
+        break;
+      }
+    }
+    if (fail == 1) {
+      return;
+    }
+    printf("runostests: ece595-file-1 ops worked!\n");
+    DfsInodeDelete(inode);
   }
 }
