@@ -43,16 +43,16 @@ void main (int argc, char *argv[])
     dataArray3[i] = i;
   }
   handle1 = file_open("file_test_2", "w");
-  file_write(handle1, dataArray3[0], 4096);
-  file_write(handle1, dataArray3[1024], 4096);
-  file_write(handle1, dataArray3[1024*2], 4096);
-  file_write(handle1, dataArray3[1024*3], 4096);
+  file_write(handle1, &dataArray3[0], 4096);
+  file_write(handle1, &dataArray3[1024], 4096);
+  file_write(handle1, &dataArray3[1024*2], 4096);
+  file_write(handle1, &dataArray3[1024*3], 4096);
   file_close(handle1);
   handle1 = file_open("file_test_2", "r");
-  file_read(handle1, dataArray4[0], 4096);
-  file_read(handle1, dataArray4[1024], 4096);
-  file_read(handle1, dataArray4[1024*2], 4096);
-  file_read(handle1, dataArray4[1024*3], 4096);
+  file_read(handle1, &dataArray4[0], 4096);
+  file_read(handle1, &dataArray4[1024], 4096);
+  file_read(handle1, &dataArray4[1024*2], 4096);
+  file_read(handle1, &dataArray4[1024*3], 4096);
   for (i = 0; i < NUM_INTS_BIG; i++) {
     if (dataArray3[i] != dataArray4[i]) {
       Printf("-----File Tests: Error! d3[%d] != d4[%d] (%d != %d)\n", i, i, dataArray3[i], dataArray4[i]);
