@@ -116,7 +116,7 @@ int DfsOpenFileSystem() {
     printf("Checking if any inode are in use.\n");
     for (i = 0; i < sb.numberInodes; i++) {
         if (inodes[i].inUse != 0) {
-            printf("inode %d in use = %d. filesize %d, filename '%s', direct addresses %d, %d, %d...\n", i, inodes[i].inUse, inodes[i].fileSize, inodes[i].fileName, inodes[i].directAddressTranslations[0], inodes[i].directAddressTranslations[1], inodes[i].directAddressTranslations[2]]);
+            printf("inode %d in use = %d. filesize %d, filename '%s', direct addresses %d, %d, %d...\n", i, inodes[i].inUse, inodes[i].fileSize, inodes[i].fileName, inodes[i].directAddressTranslations[0], inodes[i].directAddressTranslations[1], inodes[i].directAddressTranslations[2]);
         }
     }
 
