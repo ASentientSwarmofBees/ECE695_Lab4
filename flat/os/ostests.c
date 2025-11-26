@@ -5,7 +5,7 @@
 #include "dfs.h"
 
 #define TESTS 2
-#define NUMBYTES 1024
+#define NUMUINTS 256
 
 void RunOSTests() {
   // STUDENT: run any os-level tests here
@@ -15,8 +15,8 @@ void RunOSTests() {
 
   uint32 inode;
   int a;
-  char testcharArray[NUMBYTES];
-  char testcharArray2[NUMBYTES];
+  uint32 testUintArray[NUMUINTS];
+  uint32 testUintArray2[NUMUINTS];
   uint32 fail = 0;
 
   printf("OS Tests Start (TESTS = %d)\n", TESTS);
@@ -68,15 +68,15 @@ void RunOSTests() {
 
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
-    for(i = 0; i < 256; i++) {
-      testcharArray[i] = i;
+    for(i = 0; i < NUMUINTS; i++) {
+      testUintArray[i] = i;
     }
-    DfsInodeWriteBytes(inode, testcharArray, 0, 256);
-    DfsInodeReadBytes(inode, testcharArray2, 0, 256);
-    printf("runostests: checking data at start byte %d.\n", a*NUMBYTES);
-    for (i = 0; i < 256; i++) {
-      if (testcharArray[i] != testcharArray2[i]) {
-        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testcharArray[i], testcharArray2[i]);
+    DfsInodeWriteBytes(inode, testUintArray, 0, NUMUINTS*4);
+    DfsInodeReadBytes(inode, testUintArray2, 0, NUMUINTS*4);
+    printf("runostests: checking data at start byte %d.\n", 0);
+    for (i = 0; i < NUMUINTS; i++) {
+      if (testUintArray[i] != testUintArray2[i]) {
+        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
         fail = 1;
         break;
       }

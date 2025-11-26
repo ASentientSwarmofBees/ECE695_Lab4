@@ -648,7 +648,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
-        printf("DfsInodeWriteBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, file sys block: %d\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
+        printf("DfsInodeWriteBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsBlock);
 
         //Now, actually do the writing!
