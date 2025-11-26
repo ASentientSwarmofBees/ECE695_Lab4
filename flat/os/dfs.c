@@ -1141,6 +1141,7 @@ void PrintCacheMissMessage(double latencyInSeconds) {
 }
 
 void SimulateDiskAccessTimeAndWait4MS() {
+    printf("SimulateDiskAccessteimAndWait4MS\n");
     double startTime = ClkGetCurTime();
     while ((ClkGetCurTime() - startTime) < 0.004) {
         //do nothing
