@@ -81,7 +81,8 @@ void main (int argc, char *argv[])
 
   // Finally, setup superblock as valid filesystem and write superblock and boot record to disk: 
   sb.fileSystemValid = 1;
-  sb.fdiskFlag = 1;
+  dfs_invalidate();
+  
   Printf("fdisk (%d): Setting fileSystemValid to %d.\n", getpid(), sb.fileSystemValid);
   // boot record is all zeros in the first FILE system block (physical blocks 0-3), and superblock structure goes into the second FILE system block (physical blocks 4-7)
   Printf("fdisk (%d): Writing boot record and superblock to disk.\n", getpid());

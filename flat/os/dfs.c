@@ -99,8 +99,6 @@ int DfsOpenFileSystem() {
     bcopy((char*)blockArray, (char*)&sb, (int)sizeof(sb)); //changed from DFS_BLOCKSIZE to (int)sizeof(sb)
 
     PrintSBTest();
-    //Set this flag to 0 if it isn't already. The local version in memory should never have this set to 1, only the disk version.
-    sb.fdiskFlag = 0;
     
 // All other blocks are sized by virtual block size:
 // Read inodes
@@ -164,17 +162,6 @@ int DfsCloseFileSystem() {
 
     if (sb.fileSystemValid != 1) {
         printf("DfsCloseFileSystem: File sytem is invalid. Not writing to disk.\n");
-        return DFS_FAIL;
-    }
-
-    //CHECK IF FDISKFLAG ON DISK IS 1. IF IT IS, DON'T WRITE ANYTHING TO MEMORY.
-    DiskReadBlock(4, &blockArray[0]); //Superblock is always at physical block #4
-    DiskReadBlock(5, &blockArray[1]);
-    DiskReadBlock(6, &blockArray[2]);
-    DiskReadBlock(7, &blockArray[3]);
-    bcopy((char*)blockArray, (char*)&sb_flagCheck, (int)sizeof(sb_flagCheck)); //changed from DFS_BLOCKSIZE to (int)sizeof(sb)
-    if (sb_flagCheck.fdiskFlag == 1) {
-        printf("DfsCloseFileSystem: Fdisk flag is set to 1. File system will not be overwritten.\n");
         return DFS_FAIL;
     }
 
