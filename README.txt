@@ -39,7 +39,7 @@ By default, only the Cache Miss messages will print. To see all of my debug mess
 	cd ../../bin; dlxsim -x os.dlx.obj -a -D F -u ostests.dlx.obj; ee469_fixterminal
 to:
 	cd ../../bin; dlxsim -x os.dlx.obj -a -D zF -u ostests.dlx.obj; ee469_fixterminal
-Files edited: dfs.c
+Files edited: dfs.c, files.c
 
 PART 8
 

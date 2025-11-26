@@ -1122,6 +1122,6 @@ void PrintCacheMissMessage(int latencyInMS) {
     double hit_rate, miss_rate;
     hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
     miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
-    dbprintf('z', "###Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, ", hit_rate, miss_rate);
-    dbprintf('z', "Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInMS);
+    printf("###Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, ", hit_rate, miss_rate);
+    printf("Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInMS);
 }
