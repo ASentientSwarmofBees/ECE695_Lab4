@@ -5,7 +5,7 @@
 #include "dfs.h"
 
 #define TESTS 2
-#define NUMUINTS 256
+#define NUMUINTS 300
 
 void RunOSTests() {
   // STUDENT: run any os-level tests here
