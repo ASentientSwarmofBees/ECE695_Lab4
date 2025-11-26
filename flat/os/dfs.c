@@ -9,6 +9,7 @@
 
 #define DFS_INODE_MAX_NUM 256
 #define DFS_FBV_MAX_NUM_WORDS 2048
+#define BUFFER_CACHE_SLOTS 128
 
 static dfs_inode inodes[DFS_INODE_MAX_NUM]; // all inodes
 static dfs_superblock sb; // superblock
@@ -20,6 +21,15 @@ static inline uint32 invert(uint32 n) { return n ^ negativeone; }
 
 static lock_t fbvLock;
 static lock_t inodeLock;
+
+static dfs_block bufferCache[BUFFER_CACHE_SLOTS];
+static int bufferCacheBlockNums[BUFFER_CACHE_SLOTS];
+static int bufferCacheDirty[BUFFER_CACHE_SLOTS];
+static int bufferCacheNumAccesses[BUFFER_CACHE_SLOTS];
+static int cacheStatistics_NumHits = 0;
+static int cacheStatistics_NumMisses = 0;
+static int cacheStatistics_NumDiskReads = 0;
+static int cacheStatistics_NumDiskWrites = 0;
 
 // You have already been told about the most likely places where you should use locks. You may use 
 // additional locks if it is really necessary.
@@ -39,6 +49,9 @@ void DfsInvalidate();
 int DfsOpenFileSystem();
 int CheckIfBlockAllocatedInFBV(uint32 blocknum);
 void PrintSBTest();
+int DfsCacheHit(int blocknum);
+int DfsCacheAllocateSlot(int blocknum);
+int DfsCacheFlush();
 
 //-----------------------------------------------------------------
 // DfsModuleInit is called at boot time to initialize things and
@@ -46,6 +59,7 @@ void PrintSBTest();
 //-----------------------------------------------------------------
 
 void DfsModuleInit() {
+    int i;
 // You essentially set the file system as invalid and then open 
 // using DfsOpenFileSystem().
     printf("DfdModuleInit\n");
@@ -54,6 +68,12 @@ void DfsModuleInit() {
     fbvLock = LockCreate();
     inodeLock = LockCreate();
     FileInitLock();
+    //Init the cache
+    for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+        bufferCacheBlockNums[i] = -1;
+        bufferCacheDirty[i] = 0;
+        bufferCacheNumAccesses[i] = 0;
+    }
 }
 
 //-----------------------------------------------------------------
@@ -166,6 +186,9 @@ int DfsCloseFileSystem() {
         return DFS_FAIL;
     }
 
+    printf("DfsCloseFileSystem: Caling DfsCacheFlush().\n");
+    DfsCacheFlush();
+
     //Write inodes
     //8 inodes fit in 1 fs block
     //2 inodes fit in 1 disk block
@@ -272,6 +295,57 @@ int DfsFreeBlock(uint32 blocknum) {
     }
 }
 
+//-----------------------------------------------------------------
+/*
+DFS READ BLOCK - PART 7 ONWARD
+checks the buffer cache for blocknum, and loads it from the disk into the buffer cache if it is not found. It then 
+copies the bytes from the buffer copy into the dfs_block b. On a cache miss, you should also print the statistics 
+for cumulative hit/miss rates and disk I/O counts. The format should be
+
+Cache Miss: Hit Rate = XX.XXX%, Miss Rate = XX.XXX%, Disk Reads = N, Disk Writes = M, Miss Handling Latency = Xms
+Where "Miss Handling Latency" is the average of all the latencies for handling cache misses so far (including this 
+one). (Hint: the source code includes timer functions)
+*/
+//-----------------------------------------------------------------
+
+int DfsReadBlock(uint32 blocknum, dfs_block *b) {
+    int cacheIndex;
+    int val = 0;
+    disk_block blockArray[4];
+
+    if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
+
+    if (CheckIfBlockAllocatedInFBV(blocknum) == 0) {
+        printf("DfsReadBlock: Tried to read fs block %d, but it is not allocated.\n", blocknum);
+        return DFS_FAIL;
+    }
+
+    if ((cacheIndex = DfsCacheHit(blocknum)) != DFS_FAIL) {
+        printf("DfsReadBlock: Cache hit! Cache[%d].\n", cacheIndex);
+        val = sb.fileSystemBlockSize;
+    }
+    else {
+        //Block is not in cache and must be loaded in
+        cacheIndex = DfsCacheAllocateSlot(blocknum);
+
+        val += DiskReadBlock(blocknum*4, &blockArray[0]);
+        val += DiskReadBlock(blocknum*4+1, &blockArray[1]);
+        val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
+        val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
+        cacheStatistics_NumDiskReads++;
+        bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
+        if (val != sb.fileSystemBlockSize) {
+            printf("DfsReadBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
+        }
+
+    }
+    bcopy((char*)&bufferCache[cacheIndex], (char*)b, sb.fileSystemBlockSize);
+    bufferCacheNumAccesses[cacheIndex]++;
+    return val;
+}
+
 
 //-----------------------------------------------------------------
 // DfsReadBlock reads an allocated DFS block from the disk
@@ -280,7 +354,7 @@ int DfsFreeBlock(uint32 blocknum) {
 // on failure, and the number of bytes read on success.  
 //-----------------------------------------------------------------
 
-int DfsReadBlock(uint32 blocknum, dfs_block *b) {
+int DfsReadBlockUncached(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
 
@@ -310,6 +384,56 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     return val;
 }
 
+//-----------------------------------------------------------------
+/*
+DFS WRITE BLOCK - PART 7 ONWARD
+checks the buffer cache for blocknum, and reads it from the disk into the buffer cache if it is not found. It then 
+writes to the buffer cache copy of the block, and marks the block as dirty. Also print the same cache miss print as 
+above on a cache miss. 
+*/ 
+//-----------------------------------------------------------------
+
+int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
+    //TODO: MODIFY TO USE CACHING
+    disk_block blockArray[4];
+    int bytesWritten = 0;
+    int val = 0;
+    int cacheIndex;
+    
+    if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
+
+    if (CheckIfBlockAllocatedInFBV(blocknum) == 0) {
+        printf("DfsWriteBlock: Tried to write to fs block %d, but it is not allocated.\n", blocknum);
+        return DFS_FAIL;
+    }
+    
+    if ((cacheIndex = DfsCacheHit(blocknum)) != DFS_FAIL) {
+        printf("DfsWriteBlock: Cache hit! Cache[%d].\n", cacheIndex);
+        val = sb.fileSystemBlockSize;
+    }
+    else {
+        //Block is not in cache and must written to
+        cacheIndex = DfsCacheAllocateSlot(blocknum);
+
+        val += DiskReadBlock(blocknum*4, &blockArray[0]);
+        val += DiskReadBlock(blocknum*4+1, &blockArray[1]);
+        val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
+        val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
+        cacheStatistics_NumDiskReads++;
+        bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
+        if (val != sb.fileSystemBlockSize) {
+            printf("DfsWriteBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
+        }
+    }
+
+    bcopy((char*)b, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
+    bufferCacheNumAccesses[cacheIndex]++;
+    bufferCacheDirty[cacheIndex] = 1;
+    return val;
+}
+
 
 //-----------------------------------------------------------------
 // DfsWriteBlock writes to an allocated DFS block on the disk
@@ -318,7 +442,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
 // on failure, and the number of bytes written on success.  
 //-----------------------------------------------------------------
 
-int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
+int DfsWriteBlockUncached(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int bytesWritten = 0;
     
@@ -878,4 +1002,104 @@ void PrintSBTest() {
     printf("   sb.numberInodes: %d\n", sb.numberInodes);
     printf("   sb.freeBlockVectorStartingBlockNumber: %d\n", sb.freeBlockVectorStartingBlockNumber);
     printf("   sb.numFBVBlocks: %d\n", sb.numFBVBlocks);
+}
+
+/*
+checks the cache for the given blocknum. Returns DFS_FAIL if blocknum is not found, and the handle to the buffer 
+cache slot on success. 
+*/
+int DfsCacheHit(int blocknum) {
+    int i;
+    int index = DFS_FAIL;
+    for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+        if (bufferCacheBlockNums[i] == blocknum) {
+            index = i;
+            cacheStatistics_NumHits++;
+            break;
+        }
+    }
+    cacheStatistics_NumMisses++;
+    //CACHE MISS: PRINT INFO
+    printf("Cache Miss: Hit Rate = XX.XXX%%, Miss Rate = XX.XXX%%, Disk Reads = N, Disk Writes = M, Miss Handling Latency = Xms");
+    return index;
+}
+
+/*
+allocate a buffer slot for the given filesystem block number. If an empty slot is not available, evict a block 
+based on your replacement policy. If this evicted block is marked as dirty, then it must be written back to the 
+disk.
+*/
+int DfsCacheAllocateSlot(int blocknum) {
+    int index = -1;
+    int lowest_found_num_accesses;
+    disk_block blockArray[4];
+    int bytesWritten = 0;
+
+    if ((index = DfsCacheHit(blocknum)) != DFS_FAIL) {
+        printf("DfsCacheAllocateSlot: ERROR. Blocknum %d already in cache idx %d.\n", blocknum, index);
+        return index;
+    }
+
+    for (int i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+        if (bufferCacheBlockNums[i] = -1) {
+            bufferCacheBlockNums[i] = blocknum;
+            printf("DfsCacheAllocateSlot: Allocating slot %d for blocknum %d.\n", i, blocknum);
+            return i;
+        }
+    }
+
+    //No free block is available. Remove a block according to eviction policy. Write it back to disk if it is dirty.
+    //CURRENT EVICTION POLICY: BLOCKS WHICH HAVE BEEN USED THE LEAST NUMBER OF TIMES
+    lowest_found_num_accesses = bufferCacheNumAccesses[0];
+    index = 0;
+    for (int i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+        if (bufferCacheNumAccesses[i] < lowest_found_num_accesses) {
+            lowest_found_num_accesses = bufferCacheNumAccesses[i];
+            index = i;
+        }
+    }
+    printf("DfsCacheAllocateSlot: Evicting cache[%d] with %d accesses (dirty = %d).\n", index, bufferCacheNumAccesses[index], bufferCacheDirty[index]);
+    if (bufferCacheDirty[index] == 1) {
+        //Writeback!
+        bcopy((char*)&bufferCache[index], (char*)blockArray, sb.fileSystemBlockSize);
+        bytesWritten += DiskWriteBlock(blocknum*4, &blockArray[0]);
+        bytesWritten += DiskWriteBlock(blocknum*4+1, &blockArray[1]);
+        bytesWritten += DiskWriteBlock(blocknum*4+2, &blockArray[2]);
+        bytesWritten += DiskWriteBlock(blocknum*4+3, &blockArray[3]);
+        cacheStatistics_NumDiskWrites++;
+        if (bytesWritten != sb.fileSystemBlockSize) {
+            printf("DfsCacheAllocateSlot: ERROR. Tried to write dirty cache to disk. Tried to write %d bytes, but only wrote %d. (this is a non-terminating error)\n", sb.fileSystemBlockSize, bytesWritten);
+        }
+    }
+    bufferCacheBlockNums[index] = -1;
+    bufferCacheDirty[index] = 0;
+    bufferCacheNumAccesses[index] = 0;
+    return index;
+}
+
+/*
+move through all the full slots in the buffer, writing any dirty blocks to the disk and then adding the buffer slot 
+back to the list of available empty slots. Returns DSF_FAIL on failure and DFS_SUCCESS on success. This function is 
+primarily used when the operating system exits. You will need to call it from your DfsFileSystemClose function.
+*/
+int DfsCacheFlush() {
+    int i;
+    int bytesWritten = 0;
+    disk_block blockArray[4];
+
+    for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+        if (bufferCacheDirty[i] == 1) {
+            printf("DfsCacheFlush: Flushing dirty cache[%d].\n", i);
+            bcopy((char*)&bufferCache[i], (char*)blockArray, sb.fileSystemBlockSize);
+            bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4, &blockArray[0]);
+            bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4+1, &blockArray[1]);
+            bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4+2, &blockArray[2]);
+            bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4+3, &blockArray[3]);
+            cacheStatistics_NumDiskWrites++;
+            if(bytesWritten != sb.fileSystemBlockSize) {
+                printf("DfsCacheFlush: ERROR. Tried to write %d bytes, but only wrote %d.\n", sb.fileSystemBlockSize, bytesWritten);
+            }
+        }
+    }
+    return DFS_SUCCESS;
 }

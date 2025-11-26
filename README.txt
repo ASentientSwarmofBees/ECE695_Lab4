@@ -34,6 +34,7 @@ If an error happens where files are not correctly deleted, I was getting an erro
 Files edited: apps/ostests/ostests/ostests.c, file.c
 
 PART 7
+Files edited: dfs.c
 
 PART 8
 
