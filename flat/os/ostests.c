@@ -17,8 +17,7 @@ void RunOSTests() {
   int a;
   char big[NUMBYTES];
   char big2[NUMBYTES];
-
-  disk_block diskBlock;
+  uint32 fail = 0;
 
   printf("OS Tests Start (TESTS = %d)\n", TESTS);
 
@@ -81,9 +80,13 @@ void RunOSTests() {
       for (i = 0; i < NUMBYTES; i++) {
         if (big[i] != big2[i]) {
           printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", i, i, big[i], big2[i]);
+          fail = 1;
           break;
         }
       }
+    }
+    if (fail == 1) {
+      return;
     }
     printf("runostests: ece595-file-1 ops worked!\n");
     DfsInodeDelete(inode);
