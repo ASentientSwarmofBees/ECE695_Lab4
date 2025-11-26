@@ -69,7 +69,7 @@ void RunOSTests() {
   if (TESTS == 2) {
     //ostests example code, testingInodes
 
-    printf("Testing Inode Functions");
+    printf("Testing Inode Functions\n");
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
     for(i = 0; i < NUMUINTS; i++) {
@@ -97,7 +97,7 @@ void RunOSTests() {
   if (TESTS == 3) {
     //ostests example code, testingInodes
     //DOES NOT DELETE
-    printf("Testing Inodes, WIHTOUT DELETE");
+    printf("Testing Inodes, WIHTOUT DELETE\n");
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
     for(i = 0; i < NUMUINTS; i++) {
@@ -126,6 +126,7 @@ void RunOSTests() {
     //ostests example code, testingInodes
     //DOES NOT WRITE, READS WHAT WAS WRITTEN PREVIOUSLY
 
+    printf("Testing READING PREVIOUSLY WRITTEN DATA\n");
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
     for(i = 0; i < NUMUINTS; i++) {
