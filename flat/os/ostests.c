@@ -72,14 +72,17 @@ void RunOSTests() {
     for(a=0; a<1024; a++) {
       big[a] = a;
     }
-    for(a=0; a<12; a++) {
+    for(a=0; a<15; a++) {
       DfsInodeWriteBytes(inode, big, a*NUMBYTES, NUMBYTES);
     }
-    DfsInodeReadBytes(inode, big2, 10*NUMBYTES, NUMBYTES);
-    for(a=0; a<NUMBYTES; a++) {
-      if (big[a] != big2[a]) {
-        printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", a, a, big[a], big2[a]);
-        GracefulExit();
+    for (a = 0; a < 15; a++) {
+      DfsInodeReadBytes(inode, big2, a*NUMBYTES, NUMBYTES);
+      printf("runostests: checking data at start byte %d.\n", a*NUMBYTES);
+      for (i = 0; i < NUMBYTES; i++) {
+        if (big[i] != big2[i]) {
+          printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", a, a, big[a], big2[a]);
+          break;
+        }
       }
     }
     printf("runostests: ece595-file-1 ops worked!\n");
