@@ -114,6 +114,7 @@ int DfsOpenFileSystem() {
 
     // SANITY CHECK: 
     // CHECK IF ANY INODES ARE IN USE
+    printf("Checking if any inode are in use.\n");
     for (i = 0; i < sb.numberInodes; i++) {
         if (inodes[i].inUse != 0) {
             printf("inode %d in use = %d.\n", i, inodes[i].inUse);
