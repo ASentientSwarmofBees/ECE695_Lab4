@@ -652,7 +652,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         DfsReadBlock(fileSysBlockNumber, &currDfsBlock);
 
         //Now, actually do the writing!
-        printf("SANITY CHECK: mem 0x%x, mem + byteswritten 0x%x\n", mem, (char*)(mem) + bytesWritten);
+        //printf("SANITY CHECK: mem 0x%x, mem + byteswritten 0x%x\n", mem, (char*)(mem) + bytesWritten);
         if (virtualByteOffset + num_bytes > DFS_BLOCKSIZE) {
             //We are reading past the current block and will need to move on to the next block.
             bcopy((char*)(mem) + bytesWritten, (char*)&currDfsBlock.data[virtualByteOffset], DFS_BLOCKSIZE - virtualByteOffset);
@@ -827,6 +827,9 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             printf("DfsInodeTranslateVirtualToFilesys: ERROR. direct address table [%d] not allocated. (virtual block num %d)\n", virtual_blocknum, virtual_blocknum);
             return DFS_FAIL;
         }
+        if (inodes[handle].directAddressTranslations[virtual_blocknum] == -1) {
+            printf("Not sure how this would happen, but here's a missing error message. (1)");
+        }
         return inodes[handle].directAddressTranslations[virtual_blocknum];
     }
 
@@ -840,8 +843,11 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
         bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
         if (singleIndirectTable[virtual_blocknum - 10] == 0 || CheckIfBlockAllocatedInFBV(singleIndirectTable[virtual_blocknum - 10]) != 1) {
-            printf("DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table[%d]. (virtual block num %d)\n", virtual_blocknum - 10, virtual_blocknum);
+            printf("DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table[%d] not allocated. (virtual block num %d)\n", virtual_blocknum - 10, virtual_blocknum);
             return DFS_FAIL;
+        }
+        if (inodes[handle].directAddressTranslations[virtual_blocknum] == -1) {
+            printf("Not sure how this would happen, but here's a missing error message. (2)");
         }
         return singleIndirectTable[virtual_blocknum - 10];
     }
@@ -868,6 +874,9 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
         if (singleIndirectTable[indexWithinSingleIndirectBlock] == 0 || CheckIfBlockAllocatedInFBV(singleIndirectTable[indexWithinSingleIndirectBlock]) != 1) {
             printf("DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table[%d][%d] not allocated. (virtual block num %d)\n", indexWithinDoubleIndirectBlock, indexWithinSingleIndirectBlock, virtual_blocknum);
             return DFS_FAIL;
+        }
+        if (inodes[handle].directAddressTranslations[virtual_blocknum] == -1) {
+            printf("Not sure how this would happen, but here's a missing error message. (3)");
         }
         return singleIndirectTable[indexWithinSingleIndirectBlock];
     }

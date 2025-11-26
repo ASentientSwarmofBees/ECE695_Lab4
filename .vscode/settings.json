@@ -2,6 +2,7 @@
     "files.associations": {
         "ostraps.h": "c",
         "traps.h": "c",
-        "disk.h": "c"
+        "disk.h": "c",
+        "dlxos.h": "c"
     }
 }
