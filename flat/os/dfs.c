@@ -318,7 +318,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         printf("DfsReadBlock: Tried to read %d bytes from fs block %d,, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
     }
     else {
-        printf("DfsReadBlock: Successfully read %d bytes from fs block %d.\n", sb.fileSystemBlockSize, blocknum);
+        //printf("DfsReadBlock: Successfully read %d bytes from fs block %d.\n", sb.fileSystemBlockSize, blocknum);
     }
 
     return val;
@@ -351,7 +351,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     bytesWritten += DiskWriteBlock(blocknum*4+2, &blockArray[2]);
     bytesWritten += DiskWriteBlock(blocknum*4+3, &blockArray[3]);
 
-    printf("DfsWriteBlock: Successfully wrote %d bytes to fs block %d.\n", bytesWritten, blocknum);
+    //printf("DfsWriteBlock: Successfully wrote %d bytes to fs block %d.\n", bytesWritten, blocknum);
 
     return bytesWritten;
 }
