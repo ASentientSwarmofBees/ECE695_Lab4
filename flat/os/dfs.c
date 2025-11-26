@@ -111,6 +111,16 @@ int DfsOpenFileSystem() {
         bcopy(&block->data[0], (char*)&inodes[2*i], (int)sizeof(dfs_inode)); //changed from 128 to (int)sizeof(dfs_inode)
         bcopy(&block->data[128], (char*)&inodes[2*i+1], (int)sizeof(dfs_inode)); //changed from 128 to (int)sizeof(dfs_inode)
     }
+
+    // SANITY CHECK: 
+    // CHECK IF ANY INODES ARE IN USE
+    for (i = 0; i < sb.numberInodes; i++) {
+        if (inodes[i].inUse != 0) {
+            printf("inode %d in use = %d.\n", i, inodes[i].inUse);
+        }
+    }
+
+
 // Read free block vector
     for (i = 0; i < sb.numFBVBlocks; i++) {
         DiskReadBlock((sb.freeBlockVectorStartingBlockNumber+i)*4, &blockArray[0]);
