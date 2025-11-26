@@ -34,6 +34,11 @@ If an error happens where files are not correctly deleted, I was getting an erro
 Files edited: apps/ostests/ostests/ostests.c, file.c
 
 PART 7
+Notes: I'm changing my code here to make sure that I mean the printing requirements for this project. I've changed all of my printfs to dbprintfs on the debug character 'z'.
+By default, only the Cache Miss messages will print. To see all of my debug messages, change line 8 in apps/ostests/Makefile from:
+	cd ../../bin; dlxsim -x os.dlx.obj -a -D F -u ostests.dlx.obj; ee469_fixterminal
+to:
+	cd ../../bin; dlxsim -x os.dlx.obj -a -D zF -u ostests.dlx.obj; ee469_fixterminal
 Files edited: dfs.c
 
 PART 8
