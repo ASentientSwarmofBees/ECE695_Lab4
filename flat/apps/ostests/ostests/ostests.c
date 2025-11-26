@@ -19,7 +19,7 @@ void main (int argc, char *argv[])
   for (i = 0; i < NUM_INTS; i++) {
     dataArray1[i] = i;
   }
-  handle1 = file_open("file_test_1", 'w');
+  handle1 = file_open("file_test_1", "w");
   file_write(handle1, dataArray1, sizeof(int)*NUM_INTS);
   file_read(handle1, dataArray2, sizeof(int)*NUM_INTS);
   for (i = 0; i < NUM_INTS; i++) {
