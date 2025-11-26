@@ -27,10 +27,10 @@ static dfs_block bufferCache[BUFFER_CACHE_SLOTS];
 static int bufferCacheBlockNums[BUFFER_CACHE_SLOTS];
 static int bufferCacheDirty[BUFFER_CACHE_SLOTS];
 static int bufferCacheNumAccesses[BUFFER_CACHE_SLOTS];
-static int cacheStatistics_NumHits = 0;
-static int cacheStatistics_NumMisses = 0;
-static int cacheStatistics_NumDiskReads = 0;
-static int cacheStatistics_NumDiskWrites = 0;
+static uint32 cacheStatistics_NumHits = 0;
+static uint32 cacheStatistics_NumMisses = 0;
+static uint32 cacheStatistics_NumDiskReads = 0;
+static uint32 cacheStatistics_NumDiskWrites = 0;
 
 // You have already been told about the most likely places where you should use locks. You may use 
 // additional locks if it is really necessary.
@@ -327,7 +327,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     }
 
     if ((cacheIndex = DfsCacheHit(blocknum)) != DFS_FAIL) {
-        printf("DfsReadBlock: Cache hit! Cache[%d].\n", cacheIndex);
+        printf("DfsReadBlock: Cache hit! Cache[%d], blocknum %d.\n", cacheIndex, blocknum);
         val = sb.fileSystemBlockSize;
     }
     else {
@@ -339,11 +339,12 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskReads++;
+        printf("SANITY CHECK: DISKREADS INC: %d", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             printf("DfsReadBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
         }
-
+        PrintCacheMissMessage(0);
     }
     bcopy((char*)&bufferCache[cacheIndex], (char*)b, sb.fileSystemBlockSize);
     LockHandleAcquire(bufferLock);
@@ -415,7 +416,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     }
     
     if ((cacheIndex = DfsCacheHit(blocknum)) != DFS_FAIL) {
-        printf("DfsWriteBlock: Cache hit! Cache[%d].\n", cacheIndex);
+        printf("DfsWriteBlock: Cache hit! Cache[%d], blocknum %d.\n", cacheIndex, blocknum);
         val = sb.fileSystemBlockSize;
     }
     else {
@@ -427,10 +428,12 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskReads++;
+        printf("SANITY CHECK: DISKREADS INC: %d", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             printf("DfsWriteBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
         }
+        PrintCacheMissMessage(0);
     }
 
     bcopy((char*)b, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
@@ -1018,8 +1021,6 @@ cache slot on success.
 int DfsCacheHit(int blocknum) {
     int i;
     int index = DFS_FAIL;
-    double hit_rate;
-    double miss_rate;
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheBlockNums[i] == blocknum) {
             index = i;
@@ -1028,10 +1029,6 @@ int DfsCacheHit(int blocknum) {
         }
     }
     cacheStatistics_NumMisses++;
-    //CACHE MISS: PRINT INFO
-    hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
-    miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
-    printf("Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = Xms\n", hit_rate, miss_rate, cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites);
     return index;
 }
 
@@ -1118,4 +1115,11 @@ int DfsCacheFlush() {
         }
     }
     return DFS_SUCCESS;
+}
+
+void PrintCacheMissMessage(int latencyInMS) {
+    double hit_rate, miss_rate;
+    hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
+    miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
+    printf("###Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", hit_rate, miss_rate, cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInMS);
 }
