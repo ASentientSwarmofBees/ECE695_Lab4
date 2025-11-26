@@ -21,6 +21,8 @@ void main (int argc, char *argv[])
   }
   handle1 = file_open("file_test_1", "w");
   file_write(handle1, dataArray1, sizeof(int)*NUM_INTS);
+  file_close(handle1);
+  handle1 = file_open("file_test_1", "r");
   file_read(handle1, dataArray2, sizeof(int)*NUM_INTS);
   for (i = 0; i < NUM_INTS; i++) {
     if (dataArray1[i] != dataArray2[i]) {
