@@ -44,5 +44,6 @@ The eviction policy that I used for this part was tracking which block had been 
 Files edited: dfs.c, files.c
 
 PART 8
+Files edited: pattern1/include/files_shared.h
 
 PART 9
