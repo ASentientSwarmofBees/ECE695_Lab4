@@ -21,6 +21,7 @@ static inline uint32 invert(uint32 n) { return n ^ negativeone; }
 
 static lock_t fbvLock;
 static lock_t inodeLock;
+static lock_t bufferLock;
 
 static dfs_block bufferCache[BUFFER_CACHE_SLOTS];
 static int bufferCacheBlockNums[BUFFER_CACHE_SLOTS];
@@ -67,13 +68,16 @@ void DfsModuleInit() {
     DfsOpenFileSystem();
     fbvLock = LockCreate();
     inodeLock = LockCreate();
+    bufferLock = LockCreate();
     FileInitLock();
     //Init the cache
+    LockHandleAcquire(bufferLock);
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         bufferCacheBlockNums[i] = -1;
         bufferCacheDirty[i] = 0;
         bufferCacheNumAccesses[i] = 0;
     }
+    LockHandleRelease(bufferLock);
 }
 
 //-----------------------------------------------------------------
@@ -342,7 +346,9 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
 
     }
     bcopy((char*)&bufferCache[cacheIndex], (char*)b, sb.fileSystemBlockSize);
+    LockHandleAcquire(bufferLock);
     bufferCacheNumAccesses[cacheIndex]++;
+    LockHandleRelease(bufferLock);
     return val;
 }
 
@@ -428,8 +434,10 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     }
 
     bcopy((char*)b, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
+    LockHandleAcquire(bufferLock);
     bufferCacheNumAccesses[cacheIndex]++;
     bufferCacheDirty[cacheIndex] = 1;
+    LockHandleRelease(bufferLock);
     return val;
 }
 
@@ -1042,7 +1050,9 @@ int DfsCacheAllocateSlot(int blocknum) {
 
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheBlockNums[i] == -1) {
+            LockHandleAcquire(bufferLock);
             bufferCacheBlockNums[i] = blocknum;
+            LockHandleRelease(bufferLock);
             printf("DfsCacheAllocateSlot: Allocating slot %d for blocknum %d.\n", i, blocknum);
             return i;
         }
@@ -1071,9 +1081,11 @@ int DfsCacheAllocateSlot(int blocknum) {
             printf("DfsCacheAllocateSlot: ERROR. Tried to write dirty cache to disk. Tried to write %d bytes, but only wrote %d. (this is a non-terminating error)\n", sb.fileSystemBlockSize, bytesWritten);
         }
     }
+    LockHandleAcquire(bufferLock);
     bufferCacheBlockNums[index] = -1;
     bufferCacheDirty[index] = 0;
     bufferCacheNumAccesses[index] = 0;
+    LockHandleRelease(bufferLock);
     return index;
 }
 
