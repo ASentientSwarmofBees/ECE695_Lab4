@@ -4,7 +4,7 @@
 #include "disk.h"
 #include "dfs.h"
 
-#define TESTS 2
+#define TESTS 3
 #define NUMUINTS 300
 
 void RunOSTests() {
@@ -80,7 +80,7 @@ void RunOSTests() {
     printf("runostests: checking data at start byte %d.\n", 0);
     for (i = 0; i < NUMUINTS; i++) {
       if (testUintArray[i] != testUintArray2[i]) {
-        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
+        printf("runostests: FAIL: array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
         fail = 1;
         break;
       }
@@ -97,7 +97,7 @@ void RunOSTests() {
   if (TESTS == 3) {
     //ostests example code, testingInodes
     //DOES NOT DELETE
-    printf("Testing Inodes, WIHTOUT DELETE\n");
+    printf("Testing Inodes, WITHOUT DELETE\n");
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
     for(i = 0; i < NUMUINTS; i++) {
@@ -108,7 +108,7 @@ void RunOSTests() {
     printf("runostests: checking data at start byte %d.\n", 0);
     for (i = 0; i < NUMUINTS; i++) {
       if (testUintArray[i] != testUintArray2[i]) {
-        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
+        printf("runostests: FAIL: array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
         fail = 1;
         break;
       }
@@ -134,10 +134,10 @@ void RunOSTests() {
     }
     //DfsInodeWriteBytes(inode, testUintArray, 0, NUMUINTS*4);
     DfsInodeReadBytes(inode, testUintArray2, 0, NUMUINTS*4);
-    printf("runostests: checking data at start byte %d.\n", 0);
+    printf("runostests: checking data at start byte %d WRITTEN BY TEST 3.\n", 0);
     for (i = 0; i < NUMUINTS; i++) {
       if (testUintArray[i] != testUintArray2[i]) {
-        printf("runostests: FAIL: index array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
+        printf("runostests: FAIL: array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
         fail = 1;
         break;
       }

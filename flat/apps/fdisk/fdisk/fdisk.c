@@ -72,7 +72,7 @@ void main (int argc, char *argv[])
     fbv[i] = 0x0;
   }
   fbv[0] = 0xFFFFFFFF;
-  fbv[1] = 0x000001FF;
+  fbv[1] = 0x000003FF;
   fbv[DFS_FBV_MAX_NUM_WORDS-1] = 0x80000000;
   for (i = 0; i < sb.numFBVBlocks; i++) {
     bcopy((char*)&fbv[i*256], (char*)block, sb.fileSystemBlockSize);

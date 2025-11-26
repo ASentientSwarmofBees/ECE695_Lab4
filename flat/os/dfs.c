@@ -424,6 +424,8 @@ uint32 DfsInodeOpen(char *filename) {
         inodes[handle].fileName[i] = filename[i];
     }
 
+    printf("DfsInodeOpen: Sanity Check. double table %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
+
     LockHandleAcquire(inodeLock);
     inodes[handle].inUse = 1;
     LockHandleRelease(inodeLock);
