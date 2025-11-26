@@ -6,6 +6,7 @@
 
 #define TESTS 3
 #define NUMUINTS 300
+#define NUMUINTSBIG 1000
 
 void RunOSTests() {
   // STUDENT: run any os-level tests here
@@ -18,6 +19,9 @@ void RunOSTests() {
   uint32 testUintArray[NUMUINTS];
   uint32 testUintArray2[NUMUINTS];
   uint32 fail = 0;
+
+  uint32 testBigUintArray[NUMUINTSBIG];
+  uint32 testBigUintArray2[NUMUINTSBIG];
 
   printf("OS Tests Start (TESTS = %d)\n", TESTS);
 
@@ -146,6 +150,34 @@ void RunOSTests() {
       return;
     }
     printf("runostests: ece595-file-1 ops worked!\n");
+    DfsInodeDelete(inode);
+  }
+  if (TESTS == 5) {
+    //ostests example code, testingInodes
+
+    printf("Testing Inode Functions but with MASSIVE ARRAYS\n");
+    inode = DfsInodeOpen("ece695-file-1");
+    printf("runostests: inode after open is %d\n", inode);
+    for(i = 0; i < NUMUINTSBIG; i++) {
+      testBigUintArray[i] = i;
+    }
+    DfsInodeWriteBytes(inode, testBigUintArray, 0, NUMUINTSBIG*4);
+    DfsInodeReadBytes(inode, testBigUintArray2, 0, NUMUINTSBIG*4);
+    printf("runostests: checking data at start byte %d.\n", 0);
+    for (i = 0; i < NUMUINTSBIG; i++) {
+      if (testBigUintArray[i] != testBigUintArray2[i]) {
+        printf("runostests: FAIL: array[%d] != array2[%d] (%d != %d)\n", i, i, testBigUintArray[i], testBigUintArray2[i]);
+        fail = 1;
+        break;
+      }
+    }
+    if (fail == 1) {
+      return;
+    }
+    printf("runostests: ece595-file-1 ops worked!\n");
+    DfsInodeDelete(inode);
+    inode = DfsInodeOpen("ece595-file-2");
+    printf("runostests: ece595-file-2 open, inode = %d\n", inode);
     DfsInodeDelete(inode);
   }
 }
