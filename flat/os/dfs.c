@@ -573,9 +573,10 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
 
         virtualBlockNumber = start_byte / DFS_BLOCKSIZE;
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
-        
+
         //First, get to the actual direct block we need to be reading at
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
+        printf("DfsInodeReadBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d.\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsblock);
 
         //Now, actually do the reading!
@@ -643,8 +644,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
 
         virtualBlockNumber = start_byte / DFS_BLOCKSIZE;
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
-        printf("DfsInodeWriteBytes: While loop. start byte: %d, virtual block: %d, virtual offset: %d.\n", start_byte, virtualBlockNumber, virtualByteOffset);
-        
+
         //First, get to the actual direct block we need to be reading at
         if (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
             //Block needs to be allocated
@@ -652,6 +652,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
+        printf("DfsInodeWriteBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, file sys block: %d\n", start_byte, num_bytes, virtualByteOffset, fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsBlock);
 
         //Now, actually do the writing!
