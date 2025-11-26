@@ -1,7 +1,7 @@
 #ifndef __FILES_SHARED__
 #define __FILES_SHARED__
 
-#include "include/os/dlxos.h"
+#include "os/dlxos.h"
 
 struct dfs_inode; //forward declared so we don't get circular include errors
 
