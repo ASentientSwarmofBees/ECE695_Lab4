@@ -589,11 +589,12 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         else {
             //There is room in the current block to finish reading everything we need to.
             bcopy(&currDfsblock.data[virtualByteOffset], (char*)(&mem + bytesRead), num_bytes);
-            bytesRead += virtualByteOffset;
-            num_bytes -= virtualByteOffset;
-            start_byte +=  virtualByteOffset;
+            bytesRead += DFS_BLOCKSIZE - virtualByteOffset;
+            num_bytes -= DFS_BLOCKSIZE - virtualByteOffset;
+            start_byte +=  DFS_BLOCKSIZE - virtualByteOffset;
             if (num_bytes != 0) {
-                printf("DfsInodeReadBytes: Something probably went wrong here. This should be the end of our read, but num_bytes (remaining) is %d instead of 0.\n", num_bytes);
+                printf("DfsInodeReadBytes: ERROR. Should have reached file end by now. num_bytes (remaining) is %d instead of 0.\n", num_bytes);
+                return DFS_FAIL;
             }
         }
     }
