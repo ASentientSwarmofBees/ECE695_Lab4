@@ -80,11 +80,8 @@ void RunOSTests() {
       printf("runostests: checking data at start byte %d.\n", a*NUMBYTES);
       for (i = 0; i < NUMBYTES; i++) {
         if (big[i] != big2[i]) {
-          printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", a, a, big[a], big2[a]);
+          printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", i, i, big[i], big2[i]);
           break;
-        }
-        else {
-          printf("runostests: PASS: index big[%d] == big2[%d] (%d == %d)\n", a, a, big[a], big2[a]);
         }
       }
     }
