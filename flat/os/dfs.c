@@ -665,8 +665,8 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
             bcopy((char*)(&mem + bytesWritten), (char*)&currDfsBlock.data[virtualByteOffset], num_bytes);
             DfsWriteBlock(fileSysBlockNumber, &currDfsBlock);
             bytesWritten += num_bytes;
-            num_bytes -= num_bytes;
-            start_byte +=  num_bytes;
+            start_byte += num_bytes;
+            num_bytes = 0;
         }
     }
 
