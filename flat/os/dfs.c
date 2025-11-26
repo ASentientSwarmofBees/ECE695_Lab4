@@ -396,7 +396,6 @@ above on a cache miss.
 int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     //TODO: MODIFY TO USE CACHING
     disk_block blockArray[4];
-    int bytesWritten = 0;
     int val = 0;
     int cacheIndex;
     
@@ -1030,6 +1029,7 @@ based on your replacement policy. If this evicted block is marked as dirty, then
 disk.
 */
 int DfsCacheAllocateSlot(int blocknum) {
+    int i;
     int index = -1;
     int lowest_found_num_accesses;
     disk_block blockArray[4];
@@ -1040,7 +1040,7 @@ int DfsCacheAllocateSlot(int blocknum) {
         return index;
     }
 
-    for (int i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+    for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheBlockNums[i] = -1) {
             bufferCacheBlockNums[i] = blocknum;
             printf("DfsCacheAllocateSlot: Allocating slot %d for blocknum %d.\n", i, blocknum);
