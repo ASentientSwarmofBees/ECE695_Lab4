@@ -253,7 +253,7 @@ int DfsFreeBlock(uint32 blocknum) {
         return DFS_FAIL;
     }
 
-    //printf("DfsFreeBlock: %d\n", blocknum);
+    printf("DfsFreeBlock: %d\n", blocknum);
 
     if (CheckIfBlockAllocatedInFBV(blocknum) == 1) {
         //printf("DfsFreeBlock: fs block %d is '1' in FBV.\n", blocknum);
