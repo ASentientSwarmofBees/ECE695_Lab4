@@ -6,7 +6,7 @@
 
 #define TESTS 5
 #define NUMUINTS 300
-#define NUMUINTSBIG 1000
+#define NUMUINTSBIG 15000
 
 void RunOSTests() {
   // STUDENT: run any os-level tests here
