@@ -26,8 +26,12 @@ Files edited: files.c, files.h, files_shared.h, dfs.c
 Sources referenced: https://www.geeksforgeeks.org/cpp/opening-modes-in-standard-i-o-in-c-c-with-examples/
 
 PART 6
-Notes: I'm co-opting the ostests user application to test my file systems. The app ostests.c file now has a constant 
-Files edited: apps/ostests/ostests/ostests.c
+Notes: I'm co-opting the ostests user application to test my file systems. The app ostests.c file now has a constant which detemrines whether OS tests or user app file tests will be ran.
+if RUN_OS_TESTS = 0, user application file tests will run.
+if RUN_OS_TESTS = 1, OS tests will run.
+My user application file tests run two tests, both which open a file, write bytes, close the file, and then try to read the same data back. The two tests are the same, but the second test tests a much larger amount of data.
+If an error happens where files are not correctly deleted, I was getting an error that said FileRename couldn't find a file with handle -1. When this happened, I reran fdisk and it fixed it. This bug shouldn't appear anymore now that I've fixed what was causing it, but just FYI if that error message shows up again, run fdisk.
+Files edited: apps/ostests/ostests/ostests.c, file.c
 
 PART 7
 
