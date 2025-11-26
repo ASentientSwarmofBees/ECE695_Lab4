@@ -814,6 +814,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
     uint32 indexWithinSingleIndirectBlock;
 
     if (sb.fileSystemValid != 1) {
+        printf("DfsInodeTranslateVirtualToFilesys: File system invalid.\n");
         return DFS_FAIL;
     }
 
@@ -827,7 +828,6 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             printf("DfsInodeTranslateVirtualToFilesys: ERROR. direct address table [%d] not allocated. (virtual block num %d)\n", virtual_blocknum, virtual_blocknum);
             return DFS_FAIL;
         }
-        printf("%d\n", inodes[handle].directAddressTranslations[virtual_blocknum]);
         return inodes[handle].directAddressTranslations[virtual_blocknum];
     }
 
@@ -844,7 +844,6 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             printf("DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table[%d] not allocated. (virtual block num %d)\n", virtual_blocknum - 10, virtual_blocknum);
             return DFS_FAIL;
         }
-        printf("%d\n", singleIndirectTable[virtual_blocknum - 10]);
         return singleIndirectTable[virtual_blocknum - 10];
     }
 
@@ -871,7 +870,6 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             printf("DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table[%d][%d] not allocated. (virtual block num %d)\n", indexWithinDoubleIndirectBlock, indexWithinSingleIndirectBlock, virtual_blocknum);
             return DFS_FAIL;
         }
-        printf("%d\n", singleIndirectTable[indexWithinSingleIndirectBlock]);
         return singleIndirectTable[indexWithinSingleIndirectBlock];
     }
 }
