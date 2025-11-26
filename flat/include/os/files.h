@@ -4,7 +4,7 @@
 #include "dfs.h"
 #include "files_shared.h"
 
-//#define FILE_MAX_OPEN_FILES 15
+#define FILE_MAX_OPEN_FILES 15
 
 int FileOpen(char *filename, char *mode);
 

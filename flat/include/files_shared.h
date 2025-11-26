@@ -9,17 +9,18 @@ struct dfs_inode; //forward declared so we don't get circular include errors
 
 #define FILE_MAX_FILENAME_LENGTH 72
 
-#define FILE_MAX_READWRITE_BYTES 4096 //TODO: this was commented out. does it need to be changed?
+#define FILE_MAX_READWRITE_BYTES 4096
 
 typedef struct file_descriptor {
   // STUDENT: put file descriptor info here
-  uint32 inUse; //an in use indicator to tell if the descriptor is free or in use. Boolean.
+  uint32 inUse; //an in use indicator to tell if the descriptor is in use, as in it has been opened before.
+  uint32 isOpen; //indicator to tell if the file is currently opened or not.
   char fileName[FILE_MAX_FILENAME_LENGTH]; //the filename, which is just a string.
-  struct dfs_inode *inode; //inode, which this file-descriptor corresponds to. TODO: should this be a pointer?
-  uint32 eof; //eof: Indicator if the End-of-file is reached; useful for read operations. TODO: should be a boolean?
+  uint32 inode; //handle of the inode which this file-descriptor corresponds to.
+  uint32 eof; //eof: Indicator if the End-of-file is reached; useful for read operations. BOOLEAN.
   char mode; //mode: set while opening the file. Possible values: "r", "w" 
   uint32 currentPosition; //current position: Current position in the file. block num or something?
-  uint32 processID; //Process id: Process that opened the file. No other process can do any operations
+  int processID; //Process id: Process that opened the file. No other process can do any operations
 } file_descriptor;
 
 #define FILE_FAIL -1

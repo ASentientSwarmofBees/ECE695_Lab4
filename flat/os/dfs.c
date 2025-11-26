@@ -52,6 +52,7 @@ void DfsModuleInit() {
     DfsOpenFileSystem();
     fbvLock = LockCreate();
     inodeLock = LockCreate();
+    FileInitLock();
 }
 
 //-----------------------------------------------------------------
@@ -407,9 +408,7 @@ uint32 DfsInodeOpen(char *filename) {
         return DFS_FAIL;
     }
     //Copy over filename
-    for (i = 0; i < FILE_MAX_FILENAME_LENGTH; i++) {
-        inodes[handle].fileName[i] = filename[i];
-    }
+    dstrncpy(inodes[handle].fileName, filename, FILE_MAX_FILENAME_LENGTH);
 
     printf("DfsInodeOpen: Sanity Check. double table %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
 

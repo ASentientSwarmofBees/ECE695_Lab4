@@ -15,13 +15,15 @@ TESTS = 2 -> tests inode functions (DfsInodeOpen, DfsInodeWriteBytes, DfsInodeRe
 TESTS = 3 -> Same as test 2, but does not delete the inode afterwards.
 TESTS = 4 -> To be used in conjunction with Test 3. Tries to read the data which should still be present after Test 3.
 TESTS = 5 -> Same as test 2, but with a massive array size. *This currently breaks the file system.* Need to re-execute fdisk.c to restore funcitonality.
-TESTS = 6 -> Same as test 2, but with non 4 byte aligned values.
+TESTS = 6 -> Same as test 2, but with non block aligned values.
 Files edited: ostests.c, files.c, fdisk.c
 Sources referenced: https://stackoverflow.com/questions/348170/how-do-i-undo-git-add-before-commit
 https://stackoverflow.com/questions/31281679/how-to-undo-local-changes-to-a-specific-file
 https://stackoverflow.com/questions/6794110/git-revert-back-to-certain-commit
 
 PART 5
+Files edited: files.c, files.h, files_shared.h, dfs.c
+Sources referenced: https://www.geeksforgeeks.org/cpp/opening-modes-in-standard-i-o-in-c-c-with-examples/
 
 PART 6
 

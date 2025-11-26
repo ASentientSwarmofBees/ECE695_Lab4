@@ -7,6 +7,7 @@
 #define TESTS 6
 #define NUMUINTS 300
 #define NUMUINTSBIG 15000
+#define NONBLOCKALIGNEDSTARTBYTE 1
 
 void RunOSTests() {
   // STUDENT: run any os-level tests here
@@ -183,15 +184,15 @@ void RunOSTests() {
   if (TESTS == 6) {
     //ostests example code, testingInodes
 
-    printf("Testing Inode Functions WITH NON 4 BYTE ALIGNED ADDRESSES\n");
+    printf("Testing Inode Functions WITH NON BLOCK ALIGNED ADDRESSES\n");
     inode = DfsInodeOpen("ece695-file-1");
     printf("runostests: inode after open is %d\n", inode);
     for(i = 0; i < NUMUINTS; i++) {
       testUintArray[i] = i;
     }
-    DfsInodeWriteBytes(inode, testUintArray, 1, NUMUINTS*4);
-    DfsInodeReadBytes(inode, testUintArray2, 1, NUMUINTS*4);
-    printf("runostests: checking data at start byte %d.\n", 1);
+    DfsInodeWriteBytes(inode, testUintArray, NONBLOCKALIGNEDSTARTBYTE, NUMUINTS*4);
+    DfsInodeReadBytes(inode, testUintArray2, NONBLOCKALIGNEDSTARTBYTE, NUMUINTS*4);
+    printf("runostests: checking data at start byte %d.\n", NONBLOCKALIGNEDSTARTBYTE);
     for (i = 0; i < NUMUINTS; i++) {
       if (testUintArray[i] != testUintArray2[i]) {
         printf("runostests: FAIL: array[%d] != array2[%d] (%d != %d)\n", i, i, testUintArray[i], testUintArray2[i]);
