@@ -61,6 +61,9 @@ void RunOSTests() {
       printf("   Wrote 0xff to byte %d of block %d, then reading back.\n", i, array[i]);
       DfsReadBlock(array[i], &block);
       printf("   Block %d byte %d value: 0x%x\n", array[i], i, block.data[i]);
+      if (block.data[i] != 0xff) {
+        printf("ERROR!");
+      }
     }
   }
   if (TESTS == 2) {
