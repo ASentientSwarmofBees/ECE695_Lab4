@@ -82,7 +82,7 @@ void DfsModuleInit() {
         bufferCacheNumAccesses[i] = 0;
     }
     LockHandleRelease(bufferLock);
-    //ClkModuleInit();
+    ClkModuleInit();
     //ClkStart();
 }
 
@@ -145,7 +145,6 @@ int DfsOpenFileSystem() {
     // CHECK IF ANY INODES ARE IN USE
     dbprintf('z', "Checking if any inode are in use.\n");
     for (i = 0; i < sb.numberInodes; i++) {
-        printf("test2\n");
         if (inodes[i].inUse != 0) {
             dbprintf('z', "inode %d in use = %d. filesize %d, filename '%s', direct addresses %d, %d, %d... indirect tables %d, %d.\n", i, inodes[i].inUse, inodes[i].fileSize, inodes[i].fileName, inodes[i].directAddressTranslations[0], inodes[i].directAddressTranslations[1], inodes[i].directAddressTranslations[2], inodes[i].indirectAddressTableBlockNumber, inodes[i].doubleIndirectAddressTableBlockNumber);
         }
