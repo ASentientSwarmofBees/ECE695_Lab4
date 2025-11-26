@@ -339,7 +339,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskReads++;
-        printf("SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
+        //printf("SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             printf("DfsReadBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
@@ -428,7 +428,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
         val += DiskReadBlock(blocknum*4+3, &blockArray[3]);
         cacheStatistics_NumDiskReads++;
-        printf("SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
+        //printf("SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
         if (val != sb.fileSystemBlockSize) {
             printf("DfsWriteBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
@@ -1097,11 +1097,12 @@ primarily used when the operating system exits. You will need to call it from yo
 */
 int DfsCacheFlush() {
     int i;
-    int bytesWritten = 0;
+    int bytesWritten;
     disk_block blockArray[4];
 
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheDirty[i] == 1) {
+            bytesWritten = 0;
             printf("DfsCacheFlush: Flushing dirty cache[%d].\n", i);
             bcopy((char*)&bufferCache[i], (char*)blockArray, sb.fileSystemBlockSize);
             bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4, &blockArray[0]);
