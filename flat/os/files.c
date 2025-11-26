@@ -23,7 +23,7 @@ use dstrncmp function (misc.c) to compare strings.
 */
 int FileOpen(char *filename, char *mode) {
     int existingFileHandle = -1;
-    int i;
+    int i, inode;
     int handle = -1;
     for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
         if (dstrncmp(files[i].fileName, filename, FILE_MAX_FILENAME_LENGTH) == 0) {
@@ -37,6 +37,11 @@ int FileOpen(char *filename, char *mode) {
                 printf("FileOpen (%d): ERROR. File '%s' is already open by another process with PID %d.\n", GetCurrentPid(), filename, files[i].processID);
                 return FILE_FAIL;
             }
+        }
+    }
+    if (existingFileHandle == -1) {
+        if ((inode = DfsInodeFilenameExists(filename)) != -1) {
+            printf("FileOpen (%d): File '%s' not found in files, but found at inode %d.\n", GetCurrentPid(), filename, inode);
         }
     }
     switch(mode[0]) {
@@ -53,7 +58,7 @@ int FileOpen(char *filename, char *mode) {
             return existingFileHandle;
         case 'w':
             //Write (Overwrite)
-            if (existingFileHandle != -1) {
+            if (existingFileHandle != -1 || DfsInodeFilenameExists(filename) != -1) {
                 //File exists. Delete and reallocate inode.
                 printf("FileOpen (%d): Opening file '%s' at handle %d for write.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
                 DfsInodeDelete(files[existingFileHandle].inode);
