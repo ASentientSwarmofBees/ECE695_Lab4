@@ -1146,6 +1146,6 @@ void SimulateDiskAccessTimeAndWait4MS() {
     ClkStart();
     dbprintf('z', "SimulateDiskAccessTimeAndWait%dMS\n", 4);
     while ((ClkGetCurTime() - startTime) < 0.004) {
-        //do nothing
+        printf("%f - %f = %f\n", ClkGetCurTime(), startTime, ClkGetCurTime() - startTime);
     }
 }
