@@ -16,7 +16,6 @@ void RunOSTests() {
   dfs_block block;
 
   uint32 inode;
-  int a;
   uint32 testUintArray[NUMUINTS];
   uint32 testUintArray2[NUMUINTS];
   uint32 fail = 0;

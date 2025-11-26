@@ -29,12 +29,12 @@ int FileOpen(char *filename, char *mode) {
         if (dstrncmp(files[i].fileName, filename, FILE_MAX_FILENAME_LENGTH) == 0) {
             //File found and already exists
             if (existingFileHandle != -1) {
-                printf("FileOpen (%d): ERROR. Somehow, filename '%s' was found opened by multiple files with handles %d and %d.\n", getpid(), filename, existingFileHandle, i);
+                printf("FileOpen (%d): ERROR. Somehow, filename '%s' was found opened by multiple files with handles %d and %d.\n", GetCurrentPid(), filename, existingFileHandle, i);
                 return FILE_FAIL;
             }
             existingFileHandle = i;
             if (files[i].isOpen == 1) {
-                printf("FileOpen (%d): ERROR. File '%s' is already open by another process with PID %d.\n", getpid(), filename, files[i].processID);
+                printf("FileOpen (%d): ERROR. File '%s' is already open by another process with PID %d.\n", GetCurrentPid(), filename, files[i].processID);
                 return FILE_FAIL;
             }
         }
@@ -43,22 +43,22 @@ int FileOpen(char *filename, char *mode) {
         case 'r':
             //Read
             if (existingFileHandle == -1) {
-                printf("FileOpen (%d): ERROR. Tried to open file '%s' for read, but it does not exist.\n", getpid(), filename);
+                printf("FileOpen (%d): ERROR. Tried to open file '%s' for read, but it does not exist.\n", GetCurrentPid(), filename);
                 return FILE_FAIL;
             }
-            files[existingFileHandle].isOpen == 1;
-            files[existingFileHandle].mode == mode[0];
-            files[existingFileHandle].processID = getpid();
-            printf("FileOpen (%d): Opening file '%s' at handle %d for read.\n", getpid(), files[existingFileHandle].fileName, existingFileHandle);
+            files[existingFileHandle].isOpen = 1;
+            files[existingFileHandle].mode = mode[0];
+            files[existingFileHandle].processID = GetCurrentPid();
+            printf("FileOpen (%d): Opening file '%s' at handle %d for read.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
             return existingFileHandle;
         case 'w':
             //Write (Overwrite)
             if (existingFileHandle != -1) {
                 //File exists. Delete and reallocate inode.
-                printf("FileOpen (%d): Opening file '%s' at handle %d for write.\n", getpid(), files[existingFileHandle].fileName, existingFileHandle);
+                printf("FileOpen (%d): Opening file '%s' at handle %d for write.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
                 DfsInodeDelete(files[existingFileHandle].inode);
                 files[existingFileHandle].inode = DfsInodeOpen(files[existingFileHandle].fileName);
-                printf("FileOpen (%d): Done.\n", getpid());
+                printf("FileOpen (%d): Done.\n", GetCurrentPid());
                 return existingFileHandle;
             }
             //If the file doesn't exist, this has exactly the same behavior as 'a', so fall-through.
@@ -66,7 +66,7 @@ int FileOpen(char *filename, char *mode) {
             //Append
             if (existingFileHandle == -1) {
                 //The file doesn't exist, so create it
-                printf("FileOpen (%d): Creating new file '%s'.\n", getpid(), filename);
+                printf("FileOpen (%d): Creating new file '%s'.\n", GetCurrentPid(), filename);
                 //Find unallocated handle
                 for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
                     if (files[i].inUse == 0) {
@@ -75,25 +75,27 @@ int FileOpen(char *filename, char *mode) {
                     }
                 }
                 if (handle == -1) {
-                    printf("FileOpen (%d): ERROR. No available file descriptors found. Too many files are in use.\n", getpid());
+                    printf("FileOpen (%d): ERROR. No available file descriptors found. Too many files are in use.\n", GetCurrentPid());
                     return FILE_FAIL;
                 }
-                printf("FileOpen (%d): Opening new file '%s' at handle %d.\n", getpid(), filename, handle);
+                printf("FileOpen (%d): Opening new file '%s' at handle %d.\n", GetCurrentPid(), filename, handle);
+                LockHandleAcquire(fdLock);
                 files[handle].inUse = 1;
+                LockHandleRelease(fdLock);
                 files[handle].isOpen = 1;
                 dstrncpy(files[handle].fileName, filename, FILE_MAX_FILENAME_LENGTH);
                 files[handle].inode = DfsInodeOpen(files[handle].fileName);
                 files[handle].eof = 0;
                 files[handle].mode = mode[0];
                 files[handle].currentPosition = 0;
-                files[handle].processID = getpid();
-                printf("FileOpen (%d): Done.\n", getpid());
+                files[handle].processID = GetCurrentPid();
+                printf("FileOpen (%d): Done.\n", GetCurrentPid());
                 return handle;
             }
             files[existingFileHandle].currentPosition = DfsInodeFilesize(files[existingFileHandle].inode);
             files[existingFileHandle].mode = mode[0];
-            files[existingFileHandle].processID = getpid();
-            printf("FileOpen (%d): File '%s' opened in append mode.\n", getpid(), files[existingFileHandle].fileName);
+            files[existingFileHandle].processID = GetCurrentPid();
+            printf("FileOpen (%d): File '%s' opened in append mode.\n", GetCurrentPid(), files[existingFileHandle].fileName);
             return existingFileHandle;
         default:
             printf("FileOpen: ERROR. Unsupported mode char (should be r, w, or a. Was '%c'.)\n", mode[0]);
@@ -113,7 +115,7 @@ int FileClose(int handle) {
         return FILE_SUCCESS;
     }
     else {
-        printf("FileClose (%d): ERROR. File %d is not currently open.\n", getpid(), handle);
+        printf("FileClose (%d): ERROR. File %d is not currently open.\n", GetCurrentPid(), handle);
         return FILE_FAIL;
     }
 }
@@ -129,41 +131,41 @@ int FileRead(int handle, void *mem, int num_bytes) {
     // All of these functions should only allow the process that opened a given file to use the open file descriptor.
     // Error if file not opened in r mode.
     if (files[handle].inUse != 1) {
-        printf("FileRead (%d): ERROR. Tried to read from file '%s', which is not in use.\n", getpid(), files[handle].fileName);
+        printf("FileRead (%d): ERROR. Tried to read from file '%s', which is not in use.\n", GetCurrentPid(), files[handle].fileName);
         return FILE_FAIL;
     }
     if (files[handle].isOpen != 1) {
-        printf("FileRead (%d): ERROR. Tried to read from file '%s', which is not open.\n", getpid(), files[handle].fileName);
+        printf("FileRead (%d): ERROR. Tried to read from file '%s', which is not open.\n", GetCurrentPid(), files[handle].fileName);
         return FILE_FAIL;
     }
-    if (files[handle].processID != getpid()) {
-        printf("FileRead (%d): ERROR. Tried to read from file '%s', which is in use by process %d.\n", getpid(), files[handle].fileName, files[handle].processID);
+    if (files[handle].processID != GetCurrentPid()) {
+        printf("FileRead (%d): ERROR. Tried to read from file '%s', which is in use by process %d.\n", GetCurrentPid(), files[handle].fileName, files[handle].processID);
         return FILE_FAIL;
     }
     if (num_bytes > FILE_MAX_READWRITE_BYTES) {
-        printf("FileRead (%d): ERROR. Tried to read %d bytes from file '%s', which is greater than the max allowed read/write of %d bytes.\n", getpid(), num_bytes, files[handle].fileName, FILE_MAX_READWRITE_BYTES);
+        printf("FileRead (%d): ERROR. Tried to read %d bytes from file '%s', which is greater than the max allowed read/write of %d bytes.\n", GetCurrentPid(), num_bytes, files[handle].fileName, FILE_MAX_READWRITE_BYTES);
         return FILE_FAIL;
     }
     if (files[handle].eof == 1) {
-        printf("FileRead (%d): ERROR. EOF flag is set in file '%s'.\n", getpid(), num_bytes, files[handle].fileName);
+        printf("FileRead (%d): ERROR. EOF flag is set in file '%s'.\n", GetCurrentPid(), num_bytes, files[handle].fileName);
         return FILE_FAIL;
     }
     if (files[handle].mode != 'r') {
-        printf("FileRead (%d): ERROR. File '%s' is open in '%c' mode, not 'r' mode.\n", getpid(), files[handle].fileName, files[handle].mode);
+        printf("FileRead (%d): ERROR. File '%s' is open in '%c' mode, not 'r' mode.\n", GetCurrentPid(), files[handle].fileName, files[handle].mode);
         return FILE_FAIL;
     }
 
-    if (files[handle].currentPosition + num_bytes >= DfsInodefilesize(files[handle].inode)) {
-        printf("FileRead (%d): Reading %d bytes from file '%s' will trigger EOF. (curr position: %d, eof: %d) num_bytes has been throttled to %d bytes.\n", getpid(), num_bytes, files[handle].fileName, files[handle].currentPosition, DfsInodeFilesize(files[handle].inode), DfsInodefilesize(files[handle].inode) - files[handle].currentPosition);
-        num_bytes = DfsInodefilesize(files[handle].inode) - files[handle].currentPosition;
+    if (files[handle].currentPosition + num_bytes >= DfsInodeFilesize(files[handle].inode)) {
+        printf("FileRead (%d): Reading %d bytes from file '%s' will trigger EOF. (curr position: %d, eof: %d) num_bytes has been throttled to %d bytes.\n", GetCurrentPid(), num_bytes, files[handle].fileName, files[handle].currentPosition, DfsInodeFilesize(files[handle].inode), DfsInodeFilesize(files[handle].inode) - files[handle].currentPosition);
+        num_bytes = DfsInodeFilesize(files[handle].inode) - files[handle].currentPosition;
         files[handle].eof = 1;
     }
 
     if ((bytesRead = DfsInodeReadBytes(files[handle].inode, mem, files[handle].currentPosition, num_bytes)) == num_bytes) {
-        printf("FileRead (%d): Successfully read %d bytes from file '%s'.\n", getpid(), bytesRead, files[handle].fileName);
+        printf("FileRead (%d): Successfully read %d bytes from file '%s'.\n", GetCurrentPid(), bytesRead, files[handle].fileName);
     }
     else {
-        printf("FileRead (%d): Attempted to read %d bytes from file '%s', but read %d bytes instead.\n", getpid(), num_bytes, files[handle].fileName, bytesRead);
+        printf("FileRead (%d): Attempted to read %d bytes from file '%s', but read %d bytes instead.\n", GetCurrentPid(), num_bytes, files[handle].fileName, bytesRead);
     }
     return bytesRead;
 }
@@ -179,34 +181,34 @@ int FileWrite(int handle, void *mem, int num_bytes) {
     int bytesWritten;
 
     if (files[handle].inUse != 1) {
-        printf("FileWrite (%d): ERROR. Tried to write to file '%s', which is not in use.\n", getpid(), files[handle].fileName);
+        printf("FileWrite (%d): ERROR. Tried to write to file '%s', which is not in use.\n", GetCurrentPid(), files[handle].fileName);
         return FILE_FAIL;
     }
     if (files[handle].isOpen != 1) {
-        printf("FileWrite (%d): ERROR. Tried to write to file '%s', which is not open.\n", getpid(), files[handle].fileName);
+        printf("FileWrite (%d): ERROR. Tried to write to file '%s', which is not open.\n", GetCurrentPid(), files[handle].fileName);
         return FILE_FAIL;
     }
-    if (files[handle].processID != getpid()) {
-        printf("FileWrite (%d): ERROR. Tried to write to file '%s', which is in use by process %d.\n", getpid(), files[handle].fileName, files[handle].processID);
+    if (files[handle].processID != GetCurrentPid()) {
+        printf("FileWrite (%d): ERROR. Tried to write to file '%s', which is in use by process %d.\n", GetCurrentPid(), files[handle].fileName, files[handle].processID);
         return FILE_FAIL;
     }
     if (num_bytes > FILE_MAX_READWRITE_BYTES) {
-        printf("FileWrite (%d): ERROR. Tried to write %d bytes to file '%s', which is greater than the max allowed read/write of %d bytes.\n", getpid(), num_bytes, files[handle].fileName, FILE_MAX_READWRITE_BYTES);
+        printf("FileWrite (%d): ERROR. Tried to write %d bytes to file '%s', which is greater than the max allowed read/write of %d bytes.\n", GetCurrentPid(), num_bytes, files[handle].fileName, FILE_MAX_READWRITE_BYTES);
         return FILE_FAIL;
     }
     //Here's where FileRead checked EOF, but write doesn't care about EOF
     if (files[handle].mode != 'w' && files[handle].mode != 'a') {
-        printf("FileWrite (%d): ERROR. File '%s' is open in '%c' mode, not 'w' or 'a' mode.\n", getpid(), files[handle].fileName, files[handle].mode);
+        printf("FileWrite (%d): ERROR. File '%s' is open in '%c' mode, not 'w' or 'a' mode.\n", GetCurrentPid(), files[handle].fileName, files[handle].mode);
         return FILE_FAIL;
     }
 
     //Here's where FileRead throttled num_bytes, but write doesn't care about EOF
 
     if ((bytesWritten = DfsInodeWriteBytes(files[handle].inode, mem, files[handle].currentPosition, num_bytes)) == num_bytes) {
-        printf("FileWrite (%d): Successfully wrote %d bytes to file '%s'.\n", getpid(), bytesWritten, files[handle].fileName);
+        printf("FileWrite (%d): Successfully wrote %d bytes to file '%s'.\n", GetCurrentPid(), bytesWritten, files[handle].fileName);
     }
     else {
-        printf("FileWrite (%d): Attempted to write %d bytes to file '%s', but wrote %d bytes instead.\n", getpid(), num_bytes, files[handle].fileName, bytesWritten);
+        printf("FileWrite (%d): Attempted to write %d bytes to file '%s', but wrote %d bytes instead.\n", GetCurrentPid(), num_bytes, files[handle].fileName, bytesWritten);
     }
     return bytesWritten;
 }
@@ -220,28 +222,28 @@ will clear the eof flag.
 int FileSeek(int handle, int num_bytes, int from_where) {
     // Error if file not open
     if (files[handle].isOpen != 1) {
-        printf("FileSeek (%d): ERROR. File with handle %d is not open.\n", getpid(), handle);
+        printf("FileSeek (%d): ERROR. File with handle %d is not open.\n", GetCurrentPid(), handle);
         return FILE_FAIL;
     }
     if (num_bytes < 0) {
-        printf("FileSeek (%d): ERROR. Can only seek positive number of bytes.\n", getpid());
+        printf("FileSeek (%d): ERROR. Can only seek positive number of bytes.\n", GetCurrentPid());
         return FILE_FAIL;
     }
     switch(from_where) {
         case FILE_SEEK_CUR:
-            printf("FileSeek (%d): Seeking from %d -> %d.\n", getpid(), files[handle].currentPosition, files[handle].currentPosition + num_bytes);
+            printf("FileSeek (%d): Seeking from %d -> %d.\n", GetCurrentPid(), files[handle].currentPosition, files[handle].currentPosition + num_bytes);
             files[handle].currentPosition += num_bytes;
             break;
         case FILE_SEEK_SET:
-            printf("FileSeek (%d): Seeking from %d -> %d.\n", getpid(), files[handle].currentPosition, num_bytes);
+            printf("FileSeek (%d): Seeking from %d -> %d.\n", GetCurrentPid(), files[handle].currentPosition, num_bytes);
             files[handle].currentPosition = num_bytes;
             break;
         case FILE_SEEK_END:
-            printf("FileSeek (%d): Seeking from %d -> %d.\n", getpid(), files[handle].currentPosition, DfsInodeFilesize(files[handle].inode) + num_bytes);
+            printf("FileSeek (%d): Seeking from %d -> %d.\n", GetCurrentPid(), files[handle].currentPosition, DfsInodeFilesize(files[handle].inode) + num_bytes);
             files[handle].currentPosition = DfsInodeFilesize(files[handle].inode) + num_bytes;
             break;
         default:
-            printf("FileSeek (%d): ERROR. Invalid 'from_where' value.\n", getpid());
+            printf("FileSeek (%d): ERROR. Invalid 'from_where' value.\n", GetCurrentPid());
             return FILE_FAIL;
     }
     //Clear eof flag
@@ -258,20 +260,22 @@ int FileDelete(char *filename) {
     for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
         if (dstrncmp(files[i].fileName, filename, FILE_MAX_FILENAME_LENGTH) == 0) {
             if (handle != -1) {
-                printf("FileDelete (%d): ERROR. More than one file found with name '%s'. File system is probably in a broken state.\n", getpid(), filename);
+                printf("FileDelete (%d): ERROR. More than one file found with name '%s'. File system is probably in a broken state.\n", GetCurrentPid(), filename);
                 return FILE_FAIL;
             }
             handle = i;
         }
     }
     if (handle == -1) {
-        printf("FileDelete (%d): ERROR. File with name '%s' not found.\n", getpid(), filename);
+        printf("FileDelete (%d): ERROR. File with name '%s' not found.\n", GetCurrentPid(), filename);
         return FILE_FAIL;
     }
     //File has been found.
     //Should this check if process id matches?
-    printf("FileDelete (%d): Deleting file '%s' at handle %d.\n", getpid(), files[handle].fileName, handle);
+    printf("FileDelete (%d): Deleting file '%s' at handle %d.\n", GetCurrentPid(), files[handle].fileName, handle);
+    LockHandleAcquire(fdLock);
     files[handle].inUse = 0;
+    LockHandleRelease(fdLock);
     files[handle].isOpen = 0;
     for (i = 0; i < FILE_MAX_FILENAME_LENGTH; i++) {
         files[handle].fileName[i] = 0;
@@ -282,7 +286,7 @@ int FileDelete(char *filename) {
     files[handle].mode = 'n';
     files[handle].currentPosition = 0;
     files[handle].processID = 0;
-    printf("FileDelete (%d): File successfully deleted.\n", getpid());
+    printf("FileDelete (%d): File successfully deleted.\n", GetCurrentPid());
     return FILE_SUCCESS;
 }
 

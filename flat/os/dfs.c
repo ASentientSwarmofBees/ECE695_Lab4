@@ -5,6 +5,7 @@
 #include "disk.h"
 #include "dfs.h"
 #include "synch.h"
+#include "files.h" //Added just so DfsModuleInit() can call my new function FileInitLock(), because I need some way to tell files.c to init the lock the first time it's used
 
 #define DFS_INODE_MAX_NUM 256
 #define DFS_FBV_MAX_NUM_WORDS 2048
@@ -159,7 +160,6 @@ int DfsCloseFileSystem() {
     disk_block blockArray[4];
     disk_block *block;
     int i; //loop var
-    dfs_superblock sb_flagCheck;
 
     if (sb.fileSystemValid != 1) {
         printf("DfsCloseFileSystem: File sytem is invalid. Not writing to disk.\n");
