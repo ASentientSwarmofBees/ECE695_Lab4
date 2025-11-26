@@ -541,7 +541,7 @@ uint32 DfsInodeOpen(char *filename) {
     //Copy over filename
     dstrncpy(inodes[handle].fileName, filename, FILE_MAX_FILENAME_LENGTH);
 
-    printf("DfsInodeOpen: Sanity Check. double table %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
+    //printf("DfsInodeOpen: Sanity Check. double table %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
 
     LockHandleAcquire(inodeLock);
     inodes[handle].inUse = 1;
@@ -1018,6 +1018,8 @@ cache slot on success.
 int DfsCacheHit(int blocknum) {
     int i;
     int index = DFS_FAIL;
+    double hit_rate;
+    double miss_rate;
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheBlockNums[i] == blocknum) {
             index = i;
@@ -1027,7 +1029,9 @@ int DfsCacheHit(int blocknum) {
     }
     cacheStatistics_NumMisses++;
     //CACHE MISS: PRINT INFO
-    printf("Cache Miss: Hit Rate = XX.XXX%%, Miss Rate = XX.XXX%%, Disk Reads = N, Disk Writes = M, Miss Handling Latency = Xms");
+    hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
+    miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
+    printf("Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = Xms\n", hit_rate, miss_rate, cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites);
     return index;
 }
 
