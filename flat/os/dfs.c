@@ -835,7 +835,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
         //indirect table
         // Check if allocated
         if (inodes[handle].indirectAddressTableBlockNumber == 0 || CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber != 1)) {
-            printf("DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table not allocated. (virtual block num %d, indirect addr table %d)\n", virtual_blocknum, inodes[handle].indirectAddressTableBlockNumber);
+            printf("DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table not allocated. (virtual block num %d, indirect addr table %d, fbv came back as %d)\n", virtual_blocknum, inodes[handle].indirectAddressTableBlockNumber, CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber);
             return DFS_FAIL;
         }
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
