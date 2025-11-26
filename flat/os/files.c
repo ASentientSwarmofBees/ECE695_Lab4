@@ -52,6 +52,7 @@ int FileOpen(char *filename, char *mode) {
                 return FILE_FAIL;
             }
             files[existingFileHandle].isOpen = 1;
+            
             files[existingFileHandle].mode = mode[0];
             files[existingFileHandle].processID = GetCurrentPid();
             printf("FileOpen (%d): Opening file '%s' at handle %d for read.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);

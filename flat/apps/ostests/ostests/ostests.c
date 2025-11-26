@@ -5,6 +5,8 @@
 #define NUM_INTS 300
 #define NUM_INTS_BIG 4096
 
+#define FILE_SEEK_SET 1
+
 void main (int argc, char *argv[])
 {
   int dataArray1[NUM_INTS];
@@ -49,6 +51,7 @@ void main (int argc, char *argv[])
   file_write(handle1, &dataArray3[1024*3], 4096);
   file_close(handle1);
   handle1 = file_open("file_test_2", "r");
+  file_seek(handle1, 0, FILE_SEEK_SET);
   file_read(handle1, &dataArray4[0], 4096);
   file_read(handle1, &dataArray4[1024], 4096);
   file_read(handle1, &dataArray4[1024*2], 4096);
