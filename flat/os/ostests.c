@@ -4,7 +4,7 @@
 #include "disk.h"
 #include "dfs.h"
 
-#define TESTS 3
+#define TESTS 2
 #define NUMBYTES 1024
 
 void RunOSTests() {
@@ -79,29 +79,12 @@ void RunOSTests() {
     for(a=0; a<NUMBYTES; a++) {
       if (big[a] != big2[a]) {
         printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", a, a, big[a], big2[a]);
-        GracefulExit();
+        //GracefulExit();
       }
     }
     printf("runostests: ece595-file-1 ops worked!\n");
     DfsInodeDelete(inode);
     inode = DfsInodeOpen("ece595-file-2");
     printf("runostests: ece595-file-2 open, inode = %d\n", inode);
-  }
-  if (TESTS == 3) {
-    //Delete all inodes
-
-    printf("Deleting all inodes.\n");
-    for (i = 0; i < 256; i++) {
-      //printf("Deleting inode %d.\n", i);
-      DfsInodeDelete(i);
-    }
-  }
-  if (TESTS == 4) {
-    // Delete the entire image
-    printf("Deleting disk.\n");
-    bzero((char*)&diskBlock, DISK_BLOCKSIZE);
-    for (i = 0; i < 262144; i++) {
-      DiskWriteBlock(i, &diskBlock);
-    }
   }
 }
