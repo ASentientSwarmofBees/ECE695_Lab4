@@ -83,6 +83,9 @@ void RunOSTests() {
           printf("runostests: FAIL: index big[%d] != big2[%d] (%d != %d)\n", a, a, big[a], big2[a]);
           break;
         }
+        else {
+          printf("runostests: PASS: index big[%d] == big2[%d] (%d == %d)\n", a, a, big[a], big2[a]);
+        }
       }
     }
     printf("runostests: ece595-file-1 ops worked!\n");
