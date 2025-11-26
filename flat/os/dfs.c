@@ -1137,11 +1137,11 @@ void PrintCacheMissMessage(double latencyInSeconds) {
     hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
     miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
     printf("Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, ", hit_rate, miss_rate);
-    printf("Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %dms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInSeconds/1000);
+    printf("Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %.3f%ms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInSeconds/1000);
 }
 
 void SimulateDiskAccessTimeAndWait4MS() {
-    printf("SimulateDiskAccessteimAndWait4MS\n");
+    dbprintf('z', "SimulateDiskAccessteimAndWait%dMS\n", 4);
     double startTime = ClkGetCurTime();
     while ((ClkGetCurTime() - startTime) < 0.004) {
         //do nothing
