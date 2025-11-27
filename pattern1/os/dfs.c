@@ -721,7 +721,9 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
 
         //First, get to the actual direct block we need to be reading at
-        fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
+        if((fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber)) == DFS_FAIL) {
+
+        }
         dbprintf('z', "DfsInodeReadBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d.\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsblock);
 
