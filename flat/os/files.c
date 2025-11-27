@@ -219,7 +219,7 @@ int FileWrite(int handle, void *mem, int num_bytes) {
     // Error if file not opened in w or a mode
     int bytesWritten;
 
-    dbprintf('z', "FileWrite\n");
+    dbprintf('z', "FileWrite: handle %d, mem 0x%x, num_bytes %d\n", handle, &mem, num_bytes);
 
     if (files[handle].inUse != 1) {
         dbprintf('z', "FileWrite (%d): ERROR. Tried to write to file '%s', which is not in use.\n", GetCurrentPid(), files[handle].fileName);

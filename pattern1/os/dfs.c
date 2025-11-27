@@ -329,7 +329,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     double timeOfCacheMissStart;
 
-    dbprintf('z', "DfsReadBlock");
+    dbprintf('z', "DfsReadBlock\n");
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -422,7 +422,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     int cacheIndex;
     double timeOfCacheMissStart;
 
-    dbprintf('z', "DfsWriteBlock");
+    dbprintf('z', "DfsWriteBlock\n");
     
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -763,7 +763,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
     int fileSysBlockNumber;
     dfs_block currDfsBlock;
 
-    dbprintf('z', "DfsInodeWriteBytes\n");
+    dbprintf('z', "DfsInodeWriteBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n", handle, &mem, start_byte, num_bytes);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
