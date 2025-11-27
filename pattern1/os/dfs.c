@@ -380,6 +380,8 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
 
+    bprintf('z', "_DfsReadBlock: blocknum %d, *b\n", blocknum);
+
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
     }
@@ -474,6 +476,8 @@ int DfsWriteBlockCached(uint32 blocknum, dfs_block *b) {
 int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int bytesWritten = 0;
+
+    dbprintf('z', "_DfsWriteBlock: blocknum %d, *b\n", blocknum);
     
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -725,7 +729,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         //First, get to the actual direct block we need to be reading at
         while (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
             //Block needs to be allocated
-            dbprintf('z', "DfsInodeReadBytes: Allocating virtual block %d.\n", virtualBlockNumber);
+            dbprintf('z', "DfsInodeWriteBytes: Allocating virtual block %d.\n", virtualBlockNumber);
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         dbprintf('z', "DfsInodeReadBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d.\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
