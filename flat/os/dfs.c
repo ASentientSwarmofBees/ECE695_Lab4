@@ -67,7 +67,7 @@ void DfsModuleInit() {
     int i;
 // You essentially set the file system as invalid and then open 
 // using DfsOpenFileSystem().
-    dbprintf('z', "DfdModuleInit\n");
+    dbprintf('z', "_DfsModuleInit\n");
     DfsInvalidate();
     DfsOpenFileSystem();
     fbvLock = LockCreate();
@@ -110,7 +110,7 @@ int DfsOpenFileSystem() {
     disk_block *block;
     int i;
 
-    dbprintf('z', "DfsOpenFileSystem\n");
+    dbprintf('z', "_DfsOpenFileSystem\n");
 
 //Basic steps:
 // Check that filesystem is not already open
@@ -253,7 +253,7 @@ uint32 DfsAllocateBlock() {
     int blockNum;
     int i = 0;
 
-    dbprintf('z', "DfsAllocateBlock");
+    dbprintf('z', "_DfsAllocateBlock");
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -286,7 +286,7 @@ uint32 DfsAllocateBlock() {
 
 int DfsFreeBlock(uint32 blocknum) {
 
-    dbprintf('z', "DfsFreeBlock");
+    dbprintf('z', "_DfsFreeBlock: handle %d", blocknum);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -329,7 +329,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     double timeOfCacheMissStart;
 
-    dbprintf('z', "DfsReadBlock\n");
+    dbprintf('z', "_DfsReadBlock: blocknum %d, b 0x%x\n", blocknum, &b);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -422,7 +422,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     int cacheIndex;
     double timeOfCacheMissStart;
 
-    dbprintf('z', "DfsWriteBlock\n");
+    dbprintf('z', "_DfsWriteBlock: blocknum %d, b 0x%x\n", blocknum, &b);
     
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -511,7 +511,7 @@ int DfsWriteBlockUncached(uint32 blocknum, dfs_block *b) {
 uint32 DfsInodeFilenameExists(char *filename) {
     int i;
 
-    dbprintf('z', "DfsInodeFilenameExists");
+    dbprintf('z', "_DfsInodeFilenameExists: filename %s", filename);
 
     if (sb.fileSystemValid != 1) {
         dbprintf('z', "DfsInodeFilenameExists: ERROR. File system not valid.\n");
@@ -541,7 +541,7 @@ uint32 DfsInodeOpen(char *filename) {
     int i;
     int handleFound = 0;
 
-    dbprintf('z', "DfsInodeOpen");
+    dbprintf('z', "_DfsInodeOpen: filename %s", filename);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -594,7 +594,7 @@ int DfsInodeDelete(uint32 handle) {
     uint32 singleIndirectTable[256];
     uint32 doubleIndirectTable[256];
 
-    dbprintf('z', "DfsInodeDelete\n");
+    dbprintf('z', "_DfsInodeDelete: handle %d\n", handle);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -690,7 +690,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
     int fileSysBlockNumber;
     dfs_block currDfsblock;
 
-    dbprintf('z', "DfsInodeReadBytes\n");
+    dbprintf('z', "_DfsInodeReadBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n," handle, &mem, start_byte, num_bytes);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -763,7 +763,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
     int fileSysBlockNumber;
     dfs_block currDfsBlock;
 
-    dbprintf('z', "DfsInodeWriteBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n", handle, &mem, start_byte, num_bytes);
+    dbprintf('z', "_DfsInodeWriteBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n", handle, &mem, start_byte, num_bytes);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -837,7 +837,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
 
 uint32 DfsInodeFilesize(uint32 handle) {
 
-    dbprintf('z', "DfsInodeFilesize\n");
+    dbprintf('z', "_DfsInodeFilesize: handle %d\n", handle);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -870,7 +870,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     uint32 indexWithinDoubleIndirectBlock;
     uint32 indexWithinSingleIndirectBlock;
 
-    dbprintf('z', "DfsInodeAllocateVirtualBlock\n");
+    dbprintf('z', "_DfsInodeAllocateVirtualBlock: handle %d, virtual_blocknum %d\n", handle, virtual_blocknum);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -965,7 +965,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
     uint32 indexWithinDoubleIndirectBlock;
     uint32 indexWithinSingleIndirectBlock;
 
-    dbprintf('z', "DfsInodeTranslateVirtualToFilesys\n");
+    dbprintf('z', "_DfsInodeTranslateVirtualToFilesys: handle %d, virtual_blocknum %d\n");
 
     if (sb.fileSystemValid != 1) {
         dbprintf('z', "DfsInodeTranslateVirtualToFilesys: File system invalid.\n");
@@ -1056,7 +1056,7 @@ int DfsCacheHit(int blocknum) {
     int i;
     int index = DFS_FAIL;
 
-    dbprintf('z', "DfsCacheHit\n");
+    dbprintf('z', "_DfsCacheHit: blocknum %d\n". blocknum);
 
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheBlockNums[i] == blocknum) {
@@ -1081,7 +1081,7 @@ int DfsCacheAllocateSlot(int blocknum) {
     disk_block blockArray[4];
     int bytesWritten = 0;
 
-    dbprintf('z', "DfsCacheAllocateSlot\n");
+    dbprintf('z', "_DfsCacheAllocateSlot: handle %d\n");
 
     if (blocknum > 65535) {
         dbprintf('z', "DfsCacheAllocateSlot: ERROR. Blocknum %d greater than max blocknum %d.\n", blocknum, 65535)
@@ -1145,7 +1145,7 @@ int DfsCacheFlush() {
     int bytesWritten;
     disk_block blockArray[4];
 
-    dbprintf('z', "DfsCacheFlush\n");
+    dbprintf('z', "_DfsCacheFlush\n");
 
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheDirty[i] == 1) {
