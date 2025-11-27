@@ -723,8 +723,10 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
 
         //First, get to the actual direct block we need to be reading at
-        if((fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber)) == DFS_FAIL) {
-
+        while (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
+            //Block needs to be allocated
+            dbprintf('z', "DfsInodeReadBytes: Allocating virtual block %d.\n", virtualBlockNumber);
+            DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         dbprintf('z', "DfsInodeReadBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d.\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
         printf("SANITY CHECK. DRB 8. block: %d\n", fileSysBlockNumber);
@@ -795,7 +797,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
 
         //First, get to the actual direct block we need to be reading at
-        if (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
+        while (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
             //Block needs to be allocated
             dbprintf('z', "DfsInodeWriteBytes: Allocating virtual block %d.\n", virtualBlockNumber);
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
