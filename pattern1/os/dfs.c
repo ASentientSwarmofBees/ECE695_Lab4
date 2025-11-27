@@ -619,6 +619,7 @@ int DfsInodeDelete(uint32 handle) {
     dbprintf('z', "DfsInodeDelete: Checking if indirect table is in use, fs block %d\n", inodes[handle].indirectAddressTableBlockNumber);
     if (inodes[handle].indirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by indirect address table
+        printf("SANITY CHECK. DRB 11. block: %d\n", inodes[handle].indirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
         bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
         for (i = 0; i < 256; i++) {
@@ -635,10 +636,12 @@ int DfsInodeDelete(uint32 handle) {
     dbprintf('z', "DfsInodeDelete: Checking if double indirect table is in use, fs block %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
     if (inodes[handle].doubleIndirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by tables pointed to within double address table
+        printf("SANITY CHECK. DRB 10. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectBlock);
         bcopy((char*)&doubleIndirectBlock, (char*)doubleIndirectTable, DFS_BLOCKSIZE);
         for (i = 0; i < 256; i++) {
             if (doubleIndirectTable[i] != 0 && CheckIfBlockAllocatedInFBV(doubleIndirectTable[i])) {
+                printf("SANITY CHECK. DRB 9. block: %d\n", doubleIndirectTable[i]);
                 DfsReadBlock(doubleIndirectTable[i], &singleIndirectBlock);
                 bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
                 for (j = 0; j < 256; j++) {
@@ -724,6 +727,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
 
         }
         dbprintf('z', "DfsInodeReadBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d.\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
+        printf("SANITY CHECK. DRB 8. block: %d\n", fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsblock);
 
         //Now, actually do the reading!
@@ -798,6 +802,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         }
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
         dbprintf('z', "DfsInodeWriteBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
+        printf("SANITY CHECK. DRB 7. block: %d\n", fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsBlock);
 
         //Now, actually do the writing!
@@ -901,6 +906,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             inodes[handle].indirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocated indirectAddressTable to fs block %d.\n", inodes[handle].indirectAddressTableBlockNumber);
         }
+        printf("SANITY CHECK. DRB 6. block: %d\n", inodes[handle].indirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectAddrBlock);
         bcopy((char*)&singleIndirectAddrBlock, (char*)singleIndirectAddrTable, DFS_BLOCKSIZE);
         if (singleIndirectAddrTable[virtual_blocknum - 10] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[virtual_blocknum - 10]) == 1) {
@@ -921,6 +927,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         }
+        printf("SANITY CHECK. DRB 5. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
         bcopy((char*)&doubleIndirectAddrBlock, (char*)doubleIndirectAddrTable, DFS_BLOCKSIZE);
 
@@ -935,6 +942,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             bcopy((char*)doubleIndirectAddrTable, (char*)&doubleIndirectAddrBlock, DFS_BLOCKSIZE);
             DfsWriteBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
         }
+        printf("SANITY CHECK. DRB 4. block: %d\n", doubleIndirectAddrTable[indexWithinDoubleIndirectBlock]);
         DfsReadBlock(doubleIndirectAddrTable[indexWithinDoubleIndirectBlock], &singleIndirectAddrBlock);
         bcopy((char*)&singleIndirectAddrBlock, (char*)singleIndirectAddrTable, DFS_BLOCKSIZE);
 
@@ -993,6 +1001,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table not allocated. (virtual block num %d\n", virtual_blocknum);
             return DFS_FAIL;
         }
+        printf("SANITY CHECK. DRB 3. block: %d\n", inodes[handle].indirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
         bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
         if (singleIndirectTable[virtual_blocknum - 10] == 0 || CheckIfBlockAllocatedInFBV(singleIndirectTable[virtual_blocknum - 10]) != 1) {
@@ -1008,6 +1017,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table not allocated. (virtual block num %d)\n", virtual_blocknum);
             return DFS_FAIL;
         }
+        printf("SANITY CHECK. DRB 2. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectBlock);
         bcopy((char*)&doubleIndirectBlock, (char*)doubleIndirectTable, DFS_BLOCKSIZE);
 
@@ -1018,6 +1028,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table[%d] not allocated. (virtual block num %d)\n", indexWithinDoubleIndirectBlock, virtual_blocknum);
             return DFS_FAIL;
         }
+        printf("SANITY CHECK. DRB 1. block: %d\n", doubleIndirectTable[indexWithinDoubleIndirectBlock]);
         DfsReadBlock(doubleIndirectTable[indexWithinDoubleIndirectBlock], &singleIndirectBlock);
         bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
 
