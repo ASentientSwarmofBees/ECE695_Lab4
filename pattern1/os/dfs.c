@@ -690,7 +690,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
     int fileSysBlockNumber;
     dfs_block currDfsblock;
 
-    dbprintf('z', "_DfsInodeReadBytes: handle %d, *mem, start_byte %d, num_bytes %d\n," handle, start_byte, num_bytes);
+    dbprintf('z', "_DfsInodeReadBytes: handle %d, *mem, start_byte %d, num_bytes %d\n", handle, start_byte, num_bytes);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
