@@ -922,7 +922,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     else {
         //In second indirect table
         //Check if second indirect table is allocated yet
-        dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocating a block in double indirect table.\n");
+        dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocating a block in double indirect table. doubleIndirectBlockNum: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         if (inodes[handle].doubleIndirectAddressTableBlockNumber == 0) {
             //If not allocated, need to allocate that first
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
