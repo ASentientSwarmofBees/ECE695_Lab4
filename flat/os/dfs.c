@@ -434,7 +434,6 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         timeOfCacheMissStart = ClkGetCurTime();
         //Block is not in cache and must written to
         cacheIndex = DfsCacheAllocateSlot(blocknum);
-
         val += DiskReadBlock(blocknum*4, &blockArray[0]);
         val += DiskReadBlock(blocknum*4+1, &blockArray[1]);
         val += DiskReadBlock(blocknum*4+2, &blockArray[2]);
@@ -1058,6 +1057,11 @@ int DfsCacheAllocateSlot(int blocknum) {
     disk_block blockArray[4];
     int bytesWritten = 0;
 
+    if (blocknum > 65535) {
+        dbprintf('z', "DfsCacheAllocateSlot: ERROR. Blocknum %d greater than max blocknum %d.\n", blocknum, 65535)
+        return DFS_FAIL;
+    }
+
     if ((index = DfsCacheHit(blocknum)) != DFS_FAIL) {
         dbprintf('z', "DfsCacheAllocateSlot: ERROR. Blocknum %d already in cache idx %d.\n", blocknum, index);
         return index;
@@ -1137,6 +1141,7 @@ void PrintCacheMissMessage(double latencyInSeconds) {
     double hit_rate, miss_rate;
     hit_rate = ((double)(cacheStatistics_NumHits))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
     miss_rate = ((double)(cacheStatistics_NumMisses))/(cacheStatistics_NumHits + cacheStatistics_NumMisses)*100;
+    dbprintf('z', "####%c", '#');
     printf("Cache Miss: Hit Rate = %.3f%%, Miss Rate = %.3f%%, ", hit_rate, miss_rate);
     printf("Disk Reads = %d, Disk Writes = %d, Miss Handling Latency = %.3fms\n", cacheStatistics_NumDiskReads, cacheStatistics_NumDiskWrites, latencyInSeconds/1000);
 }
