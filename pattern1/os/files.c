@@ -164,7 +164,7 @@ file descriptor should be set.
 */
 int FileRead(int handle, void *mem, int num_bytes) {
     int bytesRead;
-    dbprintf('z', "_FileRead: handle %d, *mem, num_bytes %d\n", handle, num_bytes);
+    dbprintf('x', "_FileRead: handle %d, *mem, num_bytes %d\n", handle, num_bytes);
     // the maximum number of bytes that can be read or written at any time by the file functions is 4096 bytes. 
     // All of these functions should only allow the process that opened a given file to use the open file descriptor.
     // Error if file not opened in r mode.
@@ -194,16 +194,16 @@ int FileRead(int handle, void *mem, int num_bytes) {
     }
 
     if (files[handle].currentPosition + num_bytes >= DfsInodeFilesize(files[handle].inode)) {
-        dbprintf('z', "FileRead (%d): Reading %d bytes from file '%s' will trigger EOF. (curr position: %d, eof: %d) num_bytes has been throttled to %d bytes.\n", GetCurrentPid(), num_bytes, files[handle].fileName, files[handle].currentPosition, DfsInodeFilesize(files[handle].inode), DfsInodeFilesize(files[handle].inode) - files[handle].currentPosition);
+        dbprintf('x', "FileRead (%d): Reading %d bytes from file '%s' will trigger EOF. (curr position: %d, eof: %d) num_bytes has been throttled to %d bytes.\n", GetCurrentPid(), num_bytes, files[handle].fileName, files[handle].currentPosition, DfsInodeFilesize(files[handle].inode), DfsInodeFilesize(files[handle].inode) - files[handle].currentPosition);
         num_bytes = DfsInodeFilesize(files[handle].inode) - files[handle].currentPosition;
         files[handle].eof = 1;
     }
 
     if ((bytesRead = DfsInodeReadBytes(files[handle].inode, mem, files[handle].currentPosition, num_bytes)) == num_bytes) {
-        dbprintf('z', "FileRead (%d): Successfully read %d bytes from file '%s'.\n", GetCurrentPid(), bytesRead, files[handle].fileName);
+        dbprintf('x', "FileRead (%d): Successfully read %d bytes from file '%s'.\n", GetCurrentPid(), bytesRead, files[handle].fileName);
     }
     else {
-        dbprintf('z', "FileRead (%d): Attempted to read %d bytes from file '%s', but read %d bytes instead.\n", GetCurrentPid(), num_bytes, files[handle].fileName, bytesRead);
+        dbprintf('x', "FileRead (%d): Attempted to read %d bytes from file '%s', but read %d bytes instead.\n", GetCurrentPid(), num_bytes, files[handle].fileName, bytesRead);
     }
     files[handle].currentPosition += bytesRead;
     return bytesRead;
