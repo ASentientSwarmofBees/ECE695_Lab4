@@ -329,7 +329,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     double timeOfCacheMissStart;
 
-    dbprintf('z', "_DfsReadBlock: blocknum %d, b 0x%x\n", blocknum, &b);
+    dbprintf('z', "_DfsReadBlock: blocknum %d, b 0x%x\n", blocknum, b);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -422,7 +422,7 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     int cacheIndex;
     double timeOfCacheMissStart;
 
-    dbprintf('z', "_DfsWriteBlock: blocknum %d, b 0x%x\n", blocknum, &b);
+    dbprintf('z', "_DfsWriteBlock: blocknum %d, b 0x%x\n", blocknum, b);
     
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -690,7 +690,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
     int fileSysBlockNumber;
     dfs_block currDfsblock;
 
-    dbprintf('z', "_DfsInodeReadBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n," handle, &mem, start_byte, num_bytes);
+    dbprintf('z', "_DfsInodeReadBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n," handle, mem, start_byte, num_bytes);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -763,7 +763,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
     int fileSysBlockNumber;
     dfs_block currDfsBlock;
 
-    dbprintf('z', "_DfsInodeWriteBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n", handle, &mem, start_byte, num_bytes);
+    dbprintf('z', "_DfsInodeWriteBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n", handle, mem, start_byte, num_bytes);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -965,7 +965,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
     uint32 indexWithinDoubleIndirectBlock;
     uint32 indexWithinSingleIndirectBlock;
 
-    dbprintf('z', "_DfsInodeTranslateVirtualToFilesys: handle %d, virtual_blocknum %d\n");
+    dbprintf('z', "_DfsInodeTranslateVirtualToFilesys: handle %d, virtual_blocknum %d\n", handle, virtual_blocknum);
 
     if (sb.fileSystemValid != 1) {
         dbprintf('z', "DfsInodeTranslateVirtualToFilesys: File system invalid.\n");
@@ -1056,7 +1056,7 @@ int DfsCacheHit(int blocknum) {
     int i;
     int index = DFS_FAIL;
 
-    dbprintf('z', "_DfsCacheHit: blocknum %d\n". blocknum);
+    dbprintf('z', "_DfsCacheHit: blocknum %d\n", blocknum);
 
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (bufferCacheBlockNums[i] == blocknum) {
@@ -1081,7 +1081,7 @@ int DfsCacheAllocateSlot(int blocknum) {
     disk_block blockArray[4];
     int bytesWritten = 0;
 
-    dbprintf('z', "_DfsCacheAllocateSlot: handle %d\n");
+    dbprintf('z', "_DfsCacheAllocateSlot: handle %d\n", handle);
 
     if (blocknum > 65535) {
         dbprintf('z', "DfsCacheAllocateSlot: ERROR. Blocknum %d greater than max blocknum %d.\n", blocknum, 65535)
