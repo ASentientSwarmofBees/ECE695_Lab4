@@ -727,7 +727,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
 
         //First, get to the actual direct block we need to be reading at
-        while (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
+        if (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
             //Block needs to be allocated
             dbprintf('z', "DfsInodeWriteBytes: Allocating virtual block %d.\n", virtualBlockNumber);
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
@@ -801,7 +801,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         virtualByteOffset = start_byte % DFS_BLOCKSIZE;
 
         //First, get to the actual direct block we need to be reading at
-        while (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
+        if (DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber) == DFS_FAIL) {
             //Block needs to be allocated
             dbprintf('z', "DfsInodeWriteBytes: Allocating virtual block %d.\n", virtualBlockNumber);
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
@@ -874,7 +874,7 @@ uint32 DfsInodeFilesize(uint32 handle) {
 // block number on success.
 //-----------------------------------------------------------------
 
-uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
+uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     dfs_block doubleIndirectAddrBlock;
     dfs_block singleIndirectAddrBlock;
     uint32 doubleIndirectAddrTable[256];
@@ -929,10 +929,14 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
         //In second indirect table
         //Check if second indirect table is allocated yet
         dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocating a block in double indirect table. doubleIndirectBlockNum: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
-        if (inodes[handle].doubleIndirectAddressTableBlockNumber == 0) {
+        if (inodes[handle].doubleIndirectAddressTableBlockNumber == 0 || CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) != 1) {
             //If not allocated, need to allocate that first
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
+            //MAKE ABSOLUTELY SURE IT'S FRICKING EMPTY
+            dbprintf('z', "DfsInodeAllocateVirtualBlock: Making ABSOLUTELY SURE DOUBLE INDIRECT TABLE IS EMPTY.\n");
+            bzero(&doubleIndirectAddrBlock, sb.fileSystemBlockSize);
+            DfsWriteBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
         }
         printf("SANITY CHECK. DRB 5. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
@@ -940,9 +944,10 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
 
         indexWithinDoubleIndirectBlock = (virtual_blocknum - (256+10)) / 256;
         indexWithinSingleIndirectBlock = (virtual_blocknum - (256+10)) % 256;
+        dbprintf('z', "DfsInodeAllocateVirtualBlock: Calculated virtual blocknum to be in double table[%d][%d]\n", indexWithinDoubleIndirectBlock, indexWithinSingleIndirectBlock)
 
         //Check if second indirect table[] is allocated yet
-        dbprintf('z', "DfsInodeAllocateVirtualBlock: Checking if double indirect table has been allocated yet. %d = 0?\n", doubleIndirectAddrTable[indexWithinDoubleIndirectBlock])
+        dbprintf('z', "DfsInodeAllocateVirtualBlock: Checking if double indirect table[%d] has been allocated yet. %d = 0?\n", indexWithinDoubleIndirectBlock, doubleIndirectAddrTable[indexWithinDoubleIndirectBlock])
         if (doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] == 0) {
             //If not allocated, need to allocate that first
             doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] = DfsAllocateBlock();
