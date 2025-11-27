@@ -83,6 +83,7 @@ int FileOpen(char *filename, char *mode) {
 
             files[existingFileHandle].mode = mode[0];
             files[existingFileHandle].processID = GetCurrentPid();
+            files[existingFileHandle].currentPosition = 0; //CRUCIAL FOR PROPER FUNCTION WITH PATTERN.C
             dbprintf('z', "FileOpen (%d): Opening file '%s' at handle %d for read.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
             return existingFileHandle;
         case 'w':
@@ -92,6 +93,7 @@ int FileOpen(char *filename, char *mode) {
                 dbprintf('z', "FileOpen (%d): Opening file '%s' at handle %d for write.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
                 DfsInodeDelete(files[existingFileHandle].inode);
                 files[existingFileHandle].inode = DfsInodeOpen(files[existingFileHandle].fileName);
+                files[existingFileHandle].currentPosition = 0; //JUST IN CASE???
                 dbprintf('z', "FileOpen (%d): Done.\n", GetCurrentPid());
                 return existingFileHandle;
             }
