@@ -928,7 +928,8 @@ uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     else {
         //In second indirect table
         //Check if second indirect table is allocated yet
-        dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocating a block in double indirect table. doubleIndirectBlockNum: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
+        dbprintf('y', "DfsInodeAllocateVirtualBlock: Allocating a block in double indirect table. doubleIndirectBlockNum: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
+        //THIS IS NEVER EVER EVER EXECUTING. DOUBLEINDIRECTADDRESSTABLEBLOCKNUMBER IS JUST FRICKING 309 ALREADY. IT SHOULD START AS 0!!!!!!!!
         if (inodes[handle].doubleIndirectAddressTableBlockNumber == 0 || CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) != 1) {
             //If not allocated, need to allocate that first
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
