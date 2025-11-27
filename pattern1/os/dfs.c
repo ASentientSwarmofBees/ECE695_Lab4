@@ -57,6 +57,7 @@ int DfsCacheAllocateSlot(int blocknum);
 int DfsCacheFlush();
 void SimulateDiskAccessTimeAndWait4MS();
 void PrintCacheMissMessage();
+void IncrementCacheTimeSinceAccess(int index);
 
 //-----------------------------------------------------------------
 // DfsModuleInit is called at boot time to initialize things and

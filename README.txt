@@ -44,6 +44,7 @@ The eviction policy that I used for this part was tracking which block had been 
 Files edited: dfs.c, files.c
 
 PART 8
+I realized my eviction policy for part 7 was very, very bad. I replaced it with LRU.
 Files edited: all files.c, all pattern.c, all dfs.c
 
 PART 9
