@@ -253,7 +253,7 @@ uint32 DfsAllocateBlock() {
     int blockNum;
     int i = 0;
 
-    dbprintf('z', "_DfsAllocateBlock");
+    dbprintf('z', "_DfsAllocateBlock\n");
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -1024,6 +1024,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table[%d][%d] not allocated. (virtual block num %d)\n", indexWithinDoubleIndirectBlock, indexWithinSingleIndirectBlock, virtual_blocknum);
             return DFS_FAIL;
         }
+        dbprintf('z', "TranslateVirtToFilesys: Sanity Check: returning %d.\n", singleIndirectTable[indexWithinSingleIndirectBlock]);
         return singleIndirectTable[indexWithinSingleIndirectBlock];
     }
 }

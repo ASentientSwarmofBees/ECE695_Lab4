@@ -253,7 +253,7 @@ uint32 DfsAllocateBlock() {
     int blockNum;
     int i = 0;
 
-    dbprintf('z', "_DfsAllocateBlock");
+    dbprintf('z', "_DfsAllocateBlock\n");
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
