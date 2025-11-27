@@ -26,7 +26,7 @@ int FileOpen(char *filename, char *mode) {
     int i, inode;
     int handle = -1;
 
-    dbprintf('z', "_FileOpen: filename %s, mode %c\n", filename, mode);
+    dbprintf('z', "_FileOpen: filename %s, mode %c\n", filename, mode[0]);
 
     for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
         if (dstrncmp(files[i].fileName, filename, FILE_MAX_FILENAME_LENGTH) == 0) {
@@ -164,7 +164,7 @@ file descriptor should be set.
 */
 int FileRead(int handle, void *mem, int num_bytes) {
     int bytesRead;
-    dbprintf('z', "_FileRead: handle %d, mem 0x%x, num_bytes %d\n", handle, &mem, num_bytes);
+    dbprintf('z', "_FileRead: handle %d, *mem, num_bytes %d\n", handle, num_bytes);
     // the maximum number of bytes that can be read or written at any time by the file functions is 4096 bytes. 
     // All of these functions should only allow the process that opened a given file to use the open file descriptor.
     // Error if file not opened in r mode.
