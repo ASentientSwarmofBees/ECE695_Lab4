@@ -380,7 +380,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
 
-    bprintf('z', "_DfsReadBlock: blocknum %d, *b\n", blocknum);
+    dbprintf('z', "_DfsReadBlock: blocknum %d, *b\n", blocknum);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
