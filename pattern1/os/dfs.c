@@ -1079,7 +1079,7 @@ disk.
 int DfsCacheAllocateSlot(int blocknum) {
     int i;
     int index = -1;
-    int lowest_found_num_accesses;
+    int highest_found_time_since_access;
     disk_block blockArray[4];
     int bytesWritten = 0;
 
@@ -1129,10 +1129,10 @@ int DfsCacheAllocateSlot(int blocknum) {
             dbprintf('z', "DfsCacheAllocateSlot: ERROR. Tried to write dirty cache to disk. Tried to write %d bytes, but only wrote %d. (this is a non-terminating error)\n", sb.fileSystemBlockSize, bytesWritten);
         }
     }
-    IncrementCacheTimeSinceAccess(cacheIndex);
     LockHandleAcquire(bufferLock);
     bufferCacheBlockNums[index] = -1;
     bufferCacheDirty[index] = 0;
+    bufferCacheTimeSinceAccess[index] = 0;
     LockHandleRelease(bufferLock);
     return index;
 }
@@ -1192,7 +1192,7 @@ void IncrementCacheTimeSinceAccess(int index) {
     LockHandleAcquire(bufferLock);
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         if (i != index) {
-            bufferCacheTimeSinceAccess[i]++
+            bufferCacheTimeSinceAccess[i]++;
         }
     }
     LockHandleRelease(bufferLock);
