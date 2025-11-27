@@ -41,7 +41,32 @@ int FileOpen(char *filename, char *mode) {
     }
     if (existingFileHandle == -1) {
         if ((inode = DfsInodeFilenameExists(filename)) != -1) {
-            dbprintf('z', "FileOpen (%d): File '%s' not found in files, but found at inode %d.\n", GetCurrentPid(), filename, inode);
+            dbprintf('z', "FileOpen (%d): File '%s' not found in files, but found at inode %d. Creating file.\n", GetCurrentPid(), filename, inode);
+            //Find unallocated handle
+            handle = -1;
+            for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
+                if (files[i].inUse == 0) {
+                    handle = i;
+                    break;
+                }
+            }
+            if (handle == -1) {
+                dbprintf('z', "FileOpen (%d): ERROR. No available file descriptors found. Too many files are in use.\n", GetCurrentPid());
+                return FILE_FAIL;
+            }
+            dbprintf('z', "FileOpen (%d): Opening new file '%s' at handle %d.\n", GetCurrentPid(), filename, handle);
+            LockHandleAcquire(fdLock);
+            files[handle].inUse = 1;
+            LockHandleRelease(fdLock);
+            files[handle].isOpen = 1;
+            dstrncpy(files[handle].fileName, filename, FILE_MAX_FILENAME_LENGTH);
+            files[handle].inode = inode;
+            files[handle].eof = 0;
+            files[handle].mode = mode[0];
+            files[handle].currentPosition = 0;
+            files[handle].processID = GetCurrentPid();
+            dbprintf('z', "FileOpen (%d): Done.\n", GetCurrentPid());
+            return handle;
         }
     }
     switch(mode[0]) {
