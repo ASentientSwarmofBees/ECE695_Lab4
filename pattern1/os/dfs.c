@@ -737,6 +737,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
             dbprintf('z', "DfsInodeWriteBytes: Allocating virtual block %d.\n", virtualBlockNumber);
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
+        fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
         dbprintf('z', "DfsInodeReadBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d.\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
         dbprintf('z', "SANITY CHECK. DRB 8. block: %d\n", fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsblock);
