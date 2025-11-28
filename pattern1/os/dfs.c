@@ -963,6 +963,11 @@ uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
 
         //Check if second indirect table[] is allocated yet
         dbprintf('y', "DfsInodeAllocateVirtualBlock: Checking if double indirect table[%d] has been allocated yet. %d = 0?\n", indexWithinDoubleIndirectBlock, doubleIndirectAddrTable[indexWithinDoubleIndirectBlock])
+        //This is horrible hardcoding, but this EXACT situation keeps happening and I do NOT know why, so dang it, I'm going to HARDCODE A CHECK FOR THIS GARBAGE DATA
+        if (indexWithinDoubleIndirectBlock == 0 && doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] == 35584) {
+            dbprintf('z', "DfsInodeAllocateVirtualBlock: ERROR. EXACT HARDCODED CASE FOUND: double[0] == 35584, somehow!!! Resetting to 0.\n");
+            doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] = 0;
+        }
         if (doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] == 0) {
             //If not allocated, need to allocate that first
             doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] = DfsAllocateBlock();
