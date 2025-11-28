@@ -254,7 +254,7 @@ uint32 DfsAllocateBlock() {
     int blockFound = 0;
     int blockNum;
     int i = 0;
-    disk_block b;
+    dfs_block b;
     char bytes[DFS_BLOCKSIZE];
 
     dbprintf('z', "_DfsAllocateBlock\n");
