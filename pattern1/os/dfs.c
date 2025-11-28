@@ -738,7 +738,7 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
-        if (fileSysBlockNumber = DFS_FAIL) {
+        if (fileSysBlockNumber == DFS_FAIL) {
             printf("DfsInodeReadBytes: ERROR. fileSysBlockNumber = -1.\n");
             return DFS_FAIL;
         }
@@ -817,7 +817,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
-        if (fileSysBlockNumber = DFS_FAIL) {
+        if (fileSysBlockNumber == DFS_FAIL) {
             printf("DfsInodeWriteBytes: ERROR. fileSysBlockNumber = -1.\n");
             return DFS_FAIL;
         }
