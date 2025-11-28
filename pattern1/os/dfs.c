@@ -282,7 +282,9 @@ uint32 DfsAllocateBlock() {
 
     dbprintf('z', "DfsAllocateBlock: Zeroing newly allocated block %d.\n", blockNum);
     bzero(bytes, DFS_BLOCKSIZE);
+    dbprintf('z', "DfsAllocateBlock: test 1\n");
     bcopy(bytes, (char*)&b, DFS_BLOCKSIZE);
+    dbprintf('z', "DfsAllocateBlock: test 2\n");
     DiskWriteBlock(blockNum, &b);
 
     return blockNum;
