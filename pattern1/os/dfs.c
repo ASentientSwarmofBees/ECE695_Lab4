@@ -281,8 +281,10 @@ uint32 DfsAllocateBlock() {
     LockHandleRelease(fbvLock);
 
     dbprintf('z', "DfsAllocateBlock: Zeroing newly allocated block %d.\n", blockNum);
+    i = blockNum;
     bzero(bytes, DFS_BLOCKSIZE);
     bcopy(bytes, (char*)&b, DFS_BLOCKSIZE);
+    blockNum = i;
     DfsWriteBlock(blockNum, &b);
 
     return blockNum;
