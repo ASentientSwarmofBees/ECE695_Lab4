@@ -44,7 +44,8 @@ The eviction policy that I used for this part was tracking which block had been 
 Files edited: dfs.c, files.c
 
 PART 8
-I realized my eviction policy for part 7 was very, very bad. I replaced it with LRU.
+Notes: I realized my eviction policy for part 7 was very, very bad. I replaced it with LRU.
+I'm having another glitch that only seems to happen when the disk is in a broken state. So, if things aren't working, go ahead and run fdisk once and try again, please.
 Files edited: all files.c, all pattern.c, all dfs.c
 
 PART 9
