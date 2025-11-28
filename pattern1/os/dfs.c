@@ -250,9 +250,11 @@ uint32 DfsAllocateBlock() {
 // Check that file system has been validly loaded into memory
 // Find the first free block using the free block vector (FBV), mark it in use
 // Return handle to block
+// ALSO: ZERO THE BLOCK.
     int blockFound = 0;
     int blockNum;
     int i = 0;
+    disk_block b;
 
     dbprintf('z', "_DfsAllocateBlock\n");
 
@@ -276,6 +278,9 @@ uint32 DfsAllocateBlock() {
     } while(blockFound == 0);
 
     LockHandleRelease(fbvLock);
+
+    bzero(&b, DFS_BLOCKSIZE);
+    DiskWriteBlock(blockNum, b);
 
     return blockNum;
 }
@@ -948,7 +953,6 @@ uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             //If not allocated, need to allocate that first
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('y', "DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
-            GracefulExit();
         }
         dbprintf('y', "SANITY CHECK. DRB 5. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
