@@ -386,6 +386,11 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         return DFS_FAIL;
     }
 
+    if (blocknum > 65535) {
+        dbrpintf('z', "DfsReadBlock: ERROR. Tried to read fs block %d, which is larger than the max %d.\n", blocknum, 65535);
+        return DFS_FAIL;
+    }
+
     if (CheckIfBlockAllocatedInFBV(blocknum) == 0) {
         dbprintf('z', "DfsReadBlock: Tried to read fs block %d, but it is not allocated.\n", blocknum);
         return DFS_FAIL;
@@ -1056,6 +1061,10 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
 }
 
 int CheckIfBlockAllocatedInFBV(uint32 blocknum) {
+    if (blocknum > 65535) {
+        dbrpintf('z', "CheckIfBlockAllocatedInFBV: ERROR. Tried to read fs block %d, which is larger than the max %d.\n", blocknum, 65535);
+        return DFS_FAIL;
+    }
     if (fbv[blocknum / 32] & (0x1 << (blocknum % 32))) {
         return 1;
     }
