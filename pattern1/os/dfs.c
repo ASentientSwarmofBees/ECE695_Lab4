@@ -279,8 +279,8 @@ uint32 DfsAllocateBlock() {
 
     LockHandleRelease(fbvLock);
 
-    bzero(&b, DFS_BLOCKSIZE);
-    DiskWriteBlock(blockNum, b);
+    bzero((char*)&b, DFS_BLOCKSIZE);
+    DiskWriteBlock(blockNum, &b);
 
     return blockNum;
 }
