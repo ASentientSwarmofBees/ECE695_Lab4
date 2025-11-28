@@ -66,7 +66,9 @@ void main(int argc, char *argv[]) {
   Printf("cachtest: Starting Pattern 1\n");
   error_count = 0;
   for (i = 0; i < P1_NUM_INTS; i++) {
-    Printf("%d\n", i);
+    if (i % 10000 == 0) {
+      Printf("%d\n", i);
+    }
     read_bytes = file_read(handle, (void *)&read_int, INT_SIZE);
     
     if (read_bytes != INT_SIZE) {
