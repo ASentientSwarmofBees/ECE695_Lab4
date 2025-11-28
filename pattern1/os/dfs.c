@@ -948,6 +948,7 @@ uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             //If not allocated, need to allocate that first
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('y', "DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
+            GracefulExit();
         }
         dbprintf('y', "SANITY CHECK. DRB 5. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
