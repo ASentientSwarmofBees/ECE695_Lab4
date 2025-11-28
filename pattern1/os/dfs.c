@@ -280,11 +280,16 @@ uint32 DfsAllocateBlock() {
 
     LockHandleRelease(fbvLock);
 
+    /*
+    I added this to try and stop my double indirect table from filling with garbage data, and this did not fix it.
+    Which means the garbage data is being WRITTEN there at some point.
+
     dbprintf('z', "DfsAllocateBlock: Zeroing newly allocated block %d.\n", blockNum);
     bzero(bytes, DFS_BLOCKSIZE);
     bcopy(bytes, (char*)&b, DFS_BLOCKSIZE);
     dbprintf('z', "DfsAllocateBlock: Calling DiskWriteBlock to zero block %d.\n", blockNum);
     DfsWriteBlock(blockNum, &b);
+    */
 
     return blockNum;
 }
