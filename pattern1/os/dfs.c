@@ -58,6 +58,7 @@ int DfsCacheFlush();
 void SimulateDiskAccessTimeAndWait4MS();
 void PrintCacheMissMessage();
 void IncrementCacheTimeSinceAccess(int index);
+void SANITYCHECKPRINTDOUBLEINDIRECTTABLE(int v);
 
 //-----------------------------------------------------------------
 // DfsModuleInit is called at boot time to initialize things and
@@ -963,9 +964,12 @@ uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('y', "DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         }
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(0);
         dbprintf('y', "SANITY CHECK. DRB 5. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(0);
         bcopy((char*)&doubleIndirectAddrBlock, (char*)doubleIndirectAddrTable, DFS_BLOCKSIZE);
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(0);
 
         indexWithinDoubleIndirectBlock = (virtual_blocknum - (256+10)) / 256;
         indexWithinSingleIndirectBlock = (virtual_blocknum - (256+10)) % 256;
@@ -1251,4 +1255,16 @@ void IncrementCacheTimeSinceAccess(int index) {
         }
     }
     LockHandleRelease(bufferLock);
+}
+
+void SANITYCHECKPRINTDOUBLEINDIRECTTABLE(int v) {
+    dfs_block d;
+    uint32 values[256];
+
+    if (inodes[0].doubleIndirectAddressTableBlockNumber == 0) {
+        return;
+    }
+    DfsReadBlock(inodes[0].doubleIndirectAddressTableBlockNumber, &d);
+    bcopy((char*)&d, (char*)values, DFS_BLOCKSIZE);
+    dbprintf('z', "*****SANITY CHECK %d: double[0] = %d, double[1] = %d, double [2] = %d*****\n", v, values[0], values[1], values[2]);
 }
