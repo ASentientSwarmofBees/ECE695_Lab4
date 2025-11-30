@@ -436,7 +436,7 @@ above on a cache miss.
 */ 
 //-----------------------------------------------------------------
 
-int DfsWriteBlockCacheduint32 blocknum, dfs_block *b) {
+int DfsWriteBlockCached(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
     int cacheIndex;
