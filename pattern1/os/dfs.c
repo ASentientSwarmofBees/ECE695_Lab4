@@ -436,7 +436,7 @@ above on a cache miss.
 */ 
 //-----------------------------------------------------------------
 
-int DfsWriteBlockCached(uint32 blocknum, dfs_block *b) {
+int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
     int cacheIndex;
@@ -492,7 +492,7 @@ int DfsWriteBlockCached(uint32 blocknum, dfs_block *b) {
 // on failure, and the number of bytes written on success.  
 //-----------------------------------------------------------------
 
-int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
+int DfsWriteBlockUncached(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int bytesWritten = 0;
 
