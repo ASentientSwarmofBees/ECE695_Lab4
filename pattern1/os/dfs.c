@@ -281,16 +281,13 @@ uint32 DfsAllocateBlock() {
 
     LockHandleRelease(fbvLock);
 
-    /*
-    I added this to try and stop my double indirect table from filling with garbage data, and this did not fix it.
-    Which means the garbage data is being WRITTEN there at some point.
+    //I added this to try and stop my double indirect table from filling with garbage data, and this did not fix it.
+    //Which means the garbage data is being WRITTEN there at some point.
 
     dbprintf('z', "DfsAllocateBlock: Zeroing newly allocated block %d.\n", blockNum);
-    bzero(bytes, DFS_BLOCKSIZE);
-    bcopy(bytes, (char*)&b, DFS_BLOCKSIZE);
+    bzero((char*)&b, DFS_BLOCKSIZE);
     dbprintf('z', "DfsAllocateBlock: Calling DiskWriteBlock to zero block %d.\n", blockNum);
     DfsWriteBlock(blockNum, &b);
-    */
 
     return blockNum;
 }
@@ -967,9 +964,9 @@ uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
         SANITYCHECKPRINTDOUBLEINDIRECTTABLE(0);
         dbprintf('y', "SANITY CHECK. DRB 5. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
-        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(0);
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(1);
         bcopy((char*)&doubleIndirectAddrBlock, (char*)doubleIndirectAddrTable, DFS_BLOCKSIZE);
-        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(0);
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(2);
 
         indexWithinDoubleIndirectBlock = (virtual_blocknum - (256+10)) / 256;
         indexWithinSingleIndirectBlock = (virtual_blocknum - (256+10)) % 256;
