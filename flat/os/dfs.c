@@ -536,7 +536,7 @@ int DfsWriteBlockUncached(uint32 blocknum, dfs_block *b) {
 uint32 DfsInodeFilenameExists(char *filename) {
     int i;
 
-    dbprintf('z', "_DfsInodeFilenameExists: filename %s", filename);
+    dbprintf('z', "_DfsInodeFilenameExists: filename %s\n", filename);
 
     if (sb.fileSystemValid != 1) {
         dbprintf('z', "DfsInodeFilenameExists: ERROR. File system not valid.\n");
