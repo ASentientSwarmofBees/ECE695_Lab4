@@ -44,6 +44,7 @@ void main(int argc, char *argv[]) {
   Printf("cachtest: Writing %d blocks (%dMB)...\n", TOTAL_BLOCKS, TOTAL_BLOCKS * BLOCK_SIZE / (1024*1024));
   for (i = 0; i < TOTAL_BLOCKS; i++) {
     // Fill the buffer with a predictable pattern
+    Printf("Writing block %d\n", i);
     for (j = 0; j < INTS_PER_BLOCK; j++) {
       // Each int in the file will be its own absolute index
       block_buf[j] = (i * INTS_PER_BLOCK) + j;
