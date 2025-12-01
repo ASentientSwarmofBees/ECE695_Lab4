@@ -80,6 +80,9 @@ void main(int argc, char *argv[]) {
     }
 
     for (i = 0; i < P2_NUM_INTS; i++) {
+      if (i % 10000 == 0) {
+        Printf("cachtest: Pattern 2, iteration %d: Reading int index %d\n", j, i);
+      }
       read_bytes = file_read(handle, (void *)&read_int, INT_SIZE);
       expected_int = P2_START_INT_INDEX + i;
 
