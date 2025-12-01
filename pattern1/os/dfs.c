@@ -286,7 +286,7 @@ uint32 DfsAllocateBlock() {
 
     dbprintf('z', "DfsAllocateBlock: Zeroing newly allocated block %d.\n", blockNum);
     bzero((char*)&b, DFS_BLOCKSIZE);
-    dbprintf('z', "DfsAllocateBlock: Calling DiskWriteBlock to zero block %d.\n", blockNum);
+    dbprintf('z', "DfsAllocateBlock: Calling DfsWriteBlock to zero block %d.\n", blockNum);
     DfsWriteBlock(blockNum, &b);
 
     SANITYCHECKPRINTDOUBLEINDIRECTTABLE(3);
@@ -1126,6 +1126,7 @@ int DfsCacheHit(int blocknum) {
         }
     }
     cacheStatistics_NumMisses++;
+    dbprintf('z', "DfsCacheHit: returning cache index %d for blocknum %d.\n", index, blocknum);
     return index;
 }
 
