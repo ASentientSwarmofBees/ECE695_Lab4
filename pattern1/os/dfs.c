@@ -1127,6 +1127,11 @@ int DfsCacheHit(int blocknum) {
     }
     cacheStatistics_NumMisses++;
     dbprintf('z', "DfsCacheHit: returning cache index %d for blocknum %d.\n", index, blocknum);
+    if (index != DFS_FAIL) {
+        LockHandleAcquire(bufferLock);
+        bufferCacheTimeSinceAccess[index] = 0;
+        LockHandleRelease(bufferLock);
+    }
     return index;
 }
 
@@ -1176,7 +1181,7 @@ int DfsCacheAllocateSlot(int blocknum) {
             index = i;
         }
     }
-    dbprintf('z', "DfsCacheAllocateSlot: Evicting cache[%d] with time %d since access (dirty = %d).\n", index, bufferCacheTimeSinceAccess[index], bufferCacheDirty[index]);
+    dbprintf('z', "DfsCacheAllocateSlot: Evicting cache[%d] with time %d since access (contained blocknum %d) (dirty = %d).\n", index, bufferCacheTimeSinceAccess[index], bufferCacheBlockNums[index], bufferCacheDirty[index]);
     if (bufferCacheDirty[index] == 1) {
         //Writeback!
         bcopy((char*)&bufferCache[index], (char*)blockArray, sb.fileSystemBlockSize);
@@ -1190,7 +1195,7 @@ int DfsCacheAllocateSlot(int blocknum) {
             dbprintf('z', "DfsCacheAllocateSlot: ERROR. Tried to write dirty cache to disk. Tried to write %d bytes, but only wrote %d. (this is a non-terminating error)\n", sb.fileSystemBlockSize, bytesWritten);
         }
     }
-    dbprintf('z', "DfsCacheAllocateSlot: Allocating newly evictedslot %d for blocknum %d.\n", index, blocknum);
+    dbprintf('z', "DfsCacheAllocateSlot: Allocating newly evicted slot %d for blocknum %d.\n", index, blocknum);
     LockHandleAcquire(bufferLock);
     bufferCacheBlockNums[index] = blocknum;
     bufferCacheDirty[index] = 0;
