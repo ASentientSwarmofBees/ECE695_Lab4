@@ -1158,6 +1158,8 @@ int DfsCacheAllocateSlot(int blocknum) {
         if (bufferCacheBlockNums[i] == -1) {
             LockHandleAcquire(bufferLock);
             bufferCacheBlockNums[i] = blocknum;
+            bufferCacheDirty[i] = 0;
+            bufferCacheTimeSinceAccess[i] = 0;
             LockHandleRelease(bufferLock);
             dbprintf('z', "DfsCacheAllocateSlot: Allocating slot %d for blocknum %d.\n", i, blocknum);
             return i;
@@ -1188,8 +1190,9 @@ int DfsCacheAllocateSlot(int blocknum) {
             dbprintf('z', "DfsCacheAllocateSlot: ERROR. Tried to write dirty cache to disk. Tried to write %d bytes, but only wrote %d. (this is a non-terminating error)\n", sb.fileSystemBlockSize, bytesWritten);
         }
     }
+    dbprintf('z', "DfsCacheAllocateSlot: Allocating newly evictedslot %d for blocknum %d.\n", index, blocknum);
     LockHandleAcquire(bufferLock);
-    bufferCacheBlockNums[index] = -1;
+    bufferCacheBlockNums[index] = blocknum;
     bufferCacheDirty[index] = 0;
     bufferCacheTimeSinceAccess[index] = 0;
     LockHandleRelease(bufferLock);
