@@ -373,14 +373,18 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         SimulateDiskAccessTimeAndWait4MS();
         cacheStatistics_NumDiskReads++;
         //dbprintf('z', "SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
+        LockHandleAcquire(bufferLock);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
+        LockHandleRelease(bufferLock);
         if (val != sb.fileSystemBlockSize) {
             dbprintf('z', "DfsReadBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
         }
         cacheStatistics_totalTimeSpentOnCacheMisses += ClkGetCurTime() - timeOfCacheMissStart;
         PrintCacheMissMessage(cacheStatistics_totalTimeSpentOnCacheMisses/cacheStatistics_NumMisses);
     }
+    LockHandleAcquire(bufferLock);
     bcopy((char*)&bufferCache[cacheIndex], (char*)b, sb.fileSystemBlockSize);
+    LockHandleRelease(bufferLock);
     IncrementCacheTimeSinceAccess(cacheIndex);
     return val;
 }
@@ -471,7 +475,9 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         cacheStatistics_NumDiskReads++;
         SimulateDiskAccessTimeAndWait4MS();
         //dbprintf('z', "SANITY CHECK: DISKREADS INC: %d\n", cacheStatistics_NumDiskReads);
+        LockHandleAcquire(bufferLock);
         bcopy((char*)blockArray, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
+        LockHandleRelease(bufferLock);
         if (val != sb.fileSystemBlockSize) {
             dbprintf('z', "DfsWriteBlock: Tried to read %d bytes from fs block %d into cache, but only read %d.\n", sb.fileSystemBlockSize, blocknum, val);
         }
@@ -479,11 +485,11 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
         PrintCacheMissMessage(cacheStatistics_totalTimeSpentOnCacheMisses/cacheStatistics_NumMisses);
     }
 
-    bcopy((char*)b, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
-    IncrementCacheTimeSinceAccess(cacheIndex);
     LockHandleAcquire(bufferLock);
+    bcopy((char*)b, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
     bufferCacheDirty[cacheIndex] = 1;
     LockHandleRelease(bufferLock);
+    IncrementCacheTimeSinceAccess(cacheIndex);
     return val;
 }
 
@@ -1192,7 +1198,9 @@ int DfsCacheAllocateSlot(int blocknum) {
     dbprintf('z', "DfsCacheAllocateSlot: Evicting cache[%d] with time %d since access (contained blocknum %d) (dirty = %d).\n", index, bufferCacheTimeSinceAccess[index], bufferCacheBlockNums[index], bufferCacheDirty[index]);
     if (bufferCacheDirty[index] == 1) {
         //Writeback!
+        LockHandleAcquire(bufferLock);
         bcopy((char*)&bufferCache[index], (char*)blockArray, sb.fileSystemBlockSize);
+        LockHandleRelease(bufferLock);
         bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4, &blockArray[0]);
         bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+1, &blockArray[1]);
         bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+2, &blockArray[2]);
@@ -1228,7 +1236,9 @@ int DfsCacheFlush() {
         if (bufferCacheDirty[i] == 1) {
             bytesWritten = 0;
             dbprintf('z', "DfsCacheFlush: Flushing dirty cache[%d].\n", i);
+            LockHandleAcquire(bufferLock);
             bcopy((char*)&bufferCache[i], (char*)blockArray, sb.fileSystemBlockSize);
+            LockHandleRelease(bufferLock);
             bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4, &blockArray[0]);
             bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4+1, &blockArray[1]);
             bytesWritten += DiskWriteBlock(bufferCacheBlockNums[i]*4+2, &blockArray[2]);
@@ -1267,7 +1277,7 @@ void IncrementCacheTimeSinceAccess(int index) {
     int i;
     LockHandleAcquire(bufferLock);
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
-        if (i != index) {
+        if (i != index && bufferCacheBlockNums[i] != -1) {
             bufferCacheTimeSinceAccess[i]++;
         }
     }
