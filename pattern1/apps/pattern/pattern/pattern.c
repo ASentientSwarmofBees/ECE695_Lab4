@@ -13,7 +13,7 @@
 // 2MB file = 2 * 1024 * 1024 bytes = 2,097,152 bytes
 // Total blocks = 2 * 1024 = 2048 blocks
 //#define TOTAL_BLOCKS 2048
-#define TOTAL_BLOCKS 110
+#define TOTAL_BLOCKS 129
 #define TOTAL_INTS (TOTAL_BLOCKS * INTS_PER_BLOCK)
 
 
