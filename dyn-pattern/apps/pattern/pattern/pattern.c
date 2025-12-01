@@ -1,6 +1,11 @@
 #include "usertraps.h"
 #include "misc.h"
-#include "files_shared.h"
+
+#define FILE_FAIL -1
+#define FILE_EOF -1
+#define FILE_SUCCESS 1
+
+#define FILE_SEEK_SET 1
 
 // Define file system and test parameters
 #define BLOCK_SIZE 1024
