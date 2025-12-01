@@ -13,12 +13,11 @@
 // 2MB file = 2 * 1024 * 1024 bytes = 2,097,152 bytes
 // Total blocks = 2 * 1024 = 2048 blocks
 //#define TOTAL_BLOCKS 2048
-#define TOTAL_BLOCKS 200
+#define TOTAL_BLOCKS 128
 #define TOTAL_INTS (TOTAL_BLOCKS * INTS_PER_BLOCK)
 
 
-//#define P1_NUM_INTS 262144
-#define P1_NUM_INTS 25600
+#define P1_NUM_INTS (TOTAL_BLOCKS * 128)
 
 void main(int argc, char *argv[]) {
   int handle, i, j;
