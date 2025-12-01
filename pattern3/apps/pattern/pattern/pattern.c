@@ -5,6 +5,8 @@
 #define FILE_EOF -1
 #define FILE_SUCCESS 1
 
+#define FILE_SEEK_SET 1
+
 // Define file system and test parameters
 #define BLOCK_SIZE 1024
 #define INT_SIZE sizeof(int)

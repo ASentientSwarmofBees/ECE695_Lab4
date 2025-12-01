@@ -17,7 +17,7 @@ TESTS = 1 -> tests disk functions (DfsAllocateBlock, DfsFreeBlock, DfsReadBlock,
 TESTS = 2 -> tests inode functions (DfsInodeOpen, DfsInodeWriteBytes, DfsInodeReadBytes, DfsInodeDelete, etc.)
 TESTS = 3 -> Same as test 2, but does not delete the inode afterwards.
 TESTS = 4 -> To be used in conjunction with Test 3. Tries to read the data which should still be present after Test 3.
-TESTS = 5 -> Same as test 2, but with a massive array size. (Note: this doesn't seem to work when running in  cached mode, but it does work if you switch DfsReadBlock and DfsWriteBlock to their Uncached versions.)
+TESTS = 5 -> Same as test 2, but with a massive array size. (Note: this doesn't seem to work when running in cached mode, but it does work if you switch DfsReadBlock and DfsWriteBlock to their Uncached versions. I cannot for the life of me figure out why this is, because caching works in Parts 7-9 just fine.)
 TESTS = 6 -> Same as test 2, but with non block aligned values.
 Files edited: ostests.c, files.c, fdisk.c
 Sources referenced: https://stackoverflow.com/questions/348170/how-do-i-undo-git-add-before-commit
@@ -29,7 +29,9 @@ Files edited: files.c, files.h, files_shared.h, dfs.c
 Sources referenced: https://www.geeksforgeeks.org/cpp/opening-modes-in-standard-i-o-in-c-c-with-examples/
 
 PART 6
-Notes: I'm co-opting the ostests user application to test my file systems. The app ostests.c file now has a constant which detemrines whether OS tests or user app file tests will be ran.
+Notes: To execute, run "mainframer.sh 'cd apps/ostests && make run'" from lab4/flat/
+To execute, RUN_OS_TESTS in apps/ostests/ostests/ostests.c must be set to 1.
+I'm co-opting the ostests user application to test my file systems. The app ostests.c file now has a constant which detemrines whether OS tests or user app file tests will be ran.
 if RUN_OS_TESTS = 0, user application file tests will run.
 if RUN_OS_TESTS = 1, OS tests will run.
 My user application file tests run two tests, both which open a file, write bytes, close the file, and then try to read the same data back. The two tests are the same, but the second test uses a much larger amount of data.
@@ -37,7 +39,8 @@ If an error happens where files are not correctly deleted, I was getting an erro
 Files edited: apps/ostests/ostests/ostests.c, file.c
 
 PART 7
-Notes: I'm changing my code here to make sure that I meet the printing requirements for this project. I've changed all of my printfs to dbprintfs on the debug character 'z'.
+Notes: To execute, run any past tests. My code when I submit it is the cached version. If you want to test the uncached version, you'll need change the names of DfsReadBlock and DfsWriteBlock with their alternate uncached versions.
+I'm changing my code here to make sure that I meet the printing requirements for this project. I've changed all of my printfs to dbprintfs on the debug character 'z'.
 By default, only the Cache Miss messages will print. To see all of my debug messages, change line 8 in apps/ostests/Makefile from:
 	cd ../../bin; dlxsim -x os.dlx.obj -a -D F -u ostests.dlx.obj; ee469_fixterminal
 to:
@@ -48,7 +51,7 @@ I'm having some glitches that only seem to happen when the disk is in a broken s
 Files edited: dfs.c, files.c
 
 PART 8
-Notes: I don't know how long this part is inteneded to take, but when I run pattern 1, it takes like 10+ minutes.
+Notes: I don't know how long this part is intended to take, but when I run pattern 1, it takes like 10+ minutes.
 Files edited: all files.c, all pattern.c, all dfs.c
 
 PART 9
