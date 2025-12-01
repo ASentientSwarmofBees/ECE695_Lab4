@@ -1188,10 +1188,10 @@ int DfsCacheAllocateSlot(int blocknum) {
     if (bufferCacheDirty[index] == 1) {
         //Writeback!
         bcopy((char*)&bufferCache[index], (char*)blockArray, sb.fileSystemBlockSize);
-        bytesWritten += DiskWriteBlock(blocknum*4, &blockArray[0]);
-        bytesWritten += DiskWriteBlock(blocknum*4+1, &blockArray[1]);
-        bytesWritten += DiskWriteBlock(blocknum*4+2, &blockArray[2]);
-        bytesWritten += DiskWriteBlock(blocknum*4+3, &blockArray[3]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4, &blockArray[0]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+1, &blockArray[1]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+2, &blockArray[2]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+3, &blockArray[3]);
         cacheStatistics_NumDiskWrites++;
         SimulateDiskAccessTimeAndWait4MS();
         if (bytesWritten != sb.fileSystemBlockSize) {
