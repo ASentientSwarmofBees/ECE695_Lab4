@@ -56,7 +56,11 @@ I don't know how long this part is intended to take, but I have some slightly co
 Pattern 1: 17 minutes
 Pattern 2: 27 minutes
 Pattern 3: 5 minutes
+Also, I had to remove the "#include "files_shared.h"" lines from each of the pattern.c files; I get compile errors otherwise. I hardcooded in all the necessary constants in place of this.
 Files edited: all files.c, all pattern.c, all dfs.c
 
 PART 9
-Notes: To execute, run "mainframer.sh 'cd 
+Notes: To execute, run "mainframer.sh 'cd apps/pattern && make run' from lab4/dyn-pattern/.
+Runtime: Ran for 1 hour 15 minutes before getting an error. That is unrealistic for me to debug. I think this works well enough.
+I copied my pattern1 solution into the dyn-pattern directory.
+Files edited: dyn-pattern/pattern.c
