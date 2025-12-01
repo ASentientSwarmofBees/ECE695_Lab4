@@ -200,7 +200,10 @@ int DfsCloseFileSystem() {
     }
 
     dbprintf('z', "DfsCloseFileSystem: Caling DfsCacheFlush().\n");
-    DfsCacheFlush();
+    if (DfsCacheFlush() != DFS_SUCCESS) {
+        dbprintf('z', "DfsCloseFileSystem: ERROR. DfsCacheFlush() failed. Not writing filesystem to disk.\n");
+        return DFS_FAIL;
+    }
 
     //Write inodes
     //8 inodes fit in 1 fs block
@@ -1228,6 +1231,7 @@ int DfsCacheFlush() {
             cacheStatistics_NumDiskWrites++;
             if(bytesWritten != sb.fileSystemBlockSize) {
                 dbprintf('z', "DfsCacheFlush: ERROR. Tried to write %d bytes, but only wrote %d.\n", sb.fileSystemBlockSize, bytesWritten);
+                return DFS_FAIL;
             }
         }
     }

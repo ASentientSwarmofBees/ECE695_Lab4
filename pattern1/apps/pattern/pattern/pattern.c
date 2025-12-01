@@ -78,7 +78,7 @@ void main(int argc, char *argv[]) {
     }
     
     if (read_int != i) {
-      Printf("cachtest: Incorrect data read at int index %d! Expected %d, Got %d\n", i, read_int);
+      Printf("cachtest: Incorrect data read at int index %d! Expected %d, Got %d\n", i, i, read_int);
       error_count++;
     }
   }
