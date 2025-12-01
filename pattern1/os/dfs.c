@@ -338,7 +338,7 @@ one). (Hint: the source code includes timer functions)
 */
 //-----------------------------------------------------------------
 
-int DfsReadBlockCached(uint32 blocknum, dfs_block *b) {
+int DfsReadBlock(uint32 blocknum, dfs_block *b) {
     int cacheIndex;
     int val = 0;
     disk_block blockArray[4];
@@ -390,7 +390,7 @@ int DfsReadBlockCached(uint32 blocknum, dfs_block *b) {
 // on failure, and the number of bytes read on success.  
 //-----------------------------------------------------------------
 
-int DfsReadBlock(uint32 blocknum, dfs_block *b) {
+int DfsReadBlockUncached(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
 
