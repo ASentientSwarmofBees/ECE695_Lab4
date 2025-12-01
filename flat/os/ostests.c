@@ -4,7 +4,7 @@
 #include "disk.h"
 #include "dfs.h"
 
-#define TESTS 6
+#define TESTS 5
 #define NUMUINTS 300
 #define NUMUINTSBIG 15000
 #define NONBLOCKALIGNEDSTARTBYTE 1

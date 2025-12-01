@@ -1,4 +1,5 @@
 PART 1
+Notes: To execute, run "mainframer.sh 'cd apps/fdisk && make run'" from lab4/flat/
 Files edited: fdisk.h, dfs_shared.h, files_shared.h, disk.h, dfs.c, dfs.h, files.c, files.h
 
 PART 2
@@ -9,7 +10,9 @@ PART 3
 Files edited: dfs.c, dfs_shared.h, ostests.c
 
 PART 4
-Notes: ostests.c has a global #define-d called "TESTS" that runs different tests.
+Notes: To execute, run "mainframer.sh 'cd apps/ostests && make run'" from lab4/flat/
+To execute, RUN_OS_TESTS in apps/ostests/ostests/ostests.c must be set to 0.
+os/ostests.c has a global #define-d called "TESTS" that runs different tests.
 TESTS = 1 -> tests disk functions (DfsAllocateBlock, DfsFreeBlock, DfsReadBlock, DfsWriteBlock, etc.)
 TESTS = 2 -> tests inode functions (DfsInodeOpen, DfsInodeWriteBytes, DfsInodeReadBytes, DfsInodeDelete, etc.)
 TESTS = 3 -> Same as test 2, but does not delete the inode afterwards.

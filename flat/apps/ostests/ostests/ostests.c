@@ -1,6 +1,6 @@
 #include "usertraps.h"
 
-#define RUN_OS_TESTS 0
+#define RUN_OS_TESTS 1
 
 #define NUM_INTS 300
 #define NUM_INTS_BIG 4096
