@@ -820,6 +820,11 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
         return 0;
     }
 
+    if (num_bytes > FILE_MAX_READWRITE_BYTES) {
+        dbprintf('z', "DfsInodeWriteBytes: ERROR. Tried to write more than %d bytes at once (%d bytes).\n", FILE_MAX_READWRITE_BYTES, num_bytes);
+        return DFS_FAIL;
+    }
+
     dbprintf('z', "DfsInodeWriteBytes: Writing %d bytes from start byte %d in inode %d.\n", num_bytes, start_byte, handle);
 
     while (num_bytes > 0) {
