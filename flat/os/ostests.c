@@ -161,10 +161,12 @@ void RunOSTests() {
     for(i = 0; i < NUMUINTSBIG; i++) {
       testBigUintArray[i] = i;
     }
+    printf("Writing uints...");
     for (i = 0; i < NUMUINTSBIG; i++) {
       //printf("Writing uint %d to inode %d at byte %d.\n", testBigUintArray[i], inode, i*sizeof(uint32));
       DfsInodeWriteBytes(inode, &testBigUintArray[i], i*sizeof(uint32), sizeof(uint32));
     }
+    printf("Reading uints...");
     for (i = 0; i < NUMUINTSBIG; i++) {
       DfsInodeReadBytes(inode, &testBigUintArray2[i], i*sizeof(uint32), sizeof(uint32));
       //printf("Read uint %d from inode %d at byte %d.\n", testBigUintArray2[i], inode, i*sizeof(uint32));
