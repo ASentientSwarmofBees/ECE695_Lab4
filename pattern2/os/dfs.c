@@ -566,7 +566,7 @@ uint32 DfsInodeOpen(char *filename) {
     int i;
     int handleFound = 0;
 
-    dbprintf('z', "_DfsInodeOpen: filename %s", filename);
+    dbprintf('z', "_DfsInodeOpen: filename %s\n", filename);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
