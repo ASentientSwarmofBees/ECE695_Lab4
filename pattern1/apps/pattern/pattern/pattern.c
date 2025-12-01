@@ -16,7 +16,8 @@
 #define TOTAL_INTS (TOTAL_BLOCKS * INTS_PER_BLOCK)
 
 
-#define P1_NUM_INTS 262144
+//#define P1_NUM_INTS 262144
+#define P1_NUM_INTS 10
 
 void main(int argc, char *argv[]) {
   int handle, i, j;

@@ -1053,7 +1053,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table[%d] not allocated. (virtual block num %d)\n", virtual_blocknum - 10, virtual_blocknum);
             return DFS_FAIL;
         }
-        dbprintf('z', "DfsInodeTranslateVirtualToFilesys: Found in sigle indirect table. Returning %d.\n", singleIndirectTable[virtual_blocknum - 10]);
+        dbprintf('z', "DfsInodeTranslateVirtualToFilesys: Found in single indirect table. Returning %d.\n", singleIndirectTable[virtual_blocknum - 10]);
         return singleIndirectTable[virtual_blocknum - 10];
     }
 
