@@ -27,7 +27,7 @@ static lock_t bufferLock;
 static dfs_block bufferCache[BUFFER_CACHE_SLOTS];
 static int bufferCacheBlockNums[BUFFER_CACHE_SLOTS];
 static int bufferCacheDirty[BUFFER_CACHE_SLOTS];
-static int bufferCacheNumAccesses[BUFFER_CACHE_SLOTS];
+static int bufferCacheTimeSinceAccess[BUFFER_CACHE_SLOTS];
 static uint32 cacheStatistics_NumHits = 0;
 static uint32 cacheStatistics_NumMisses = 0;
 static uint32 cacheStatistics_NumDiskReads = 0;
@@ -57,6 +57,8 @@ int DfsCacheAllocateSlot(int blocknum);
 int DfsCacheFlush();
 void SimulateDiskAccessTimeAndWait4MS();
 void PrintCacheMissMessage();
+void IncrementCacheTimeSinceAccess(int index);
+void SANITYCHECKPRINTDOUBLEINDIRECTTABLE(int v);
 
 //-----------------------------------------------------------------
 // DfsModuleInit is called at boot time to initialize things and
@@ -79,7 +81,7 @@ void DfsModuleInit() {
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
         bufferCacheBlockNums[i] = -1;
         bufferCacheDirty[i] = 0;
-        bufferCacheNumAccesses[i] = 0;
+        bufferCacheTimeSinceAccess[i] = 0;
     }
     LockHandleRelease(bufferLock);
     ClkModuleInit();
@@ -110,7 +112,7 @@ int DfsOpenFileSystem() {
     disk_block *block;
     int i;
 
-    dbprintf('z', "_DfsOpenFileSystem\n");
+    dbprintf('z', "DfsOpenFileSystem\n");
 
 //Basic steps:
 // Check that filesystem is not already open
@@ -198,7 +200,10 @@ int DfsCloseFileSystem() {
     }
 
     dbprintf('z', "DfsCloseFileSystem: Caling DfsCacheFlush().\n");
-    DfsCacheFlush();
+    if (DfsCacheFlush() != DFS_SUCCESS) {
+        dbprintf('z', "DfsCloseFileSystem: ERROR. DfsCacheFlush() failed. Not writing filesystem to disk.\n");
+        return DFS_FAIL;
+    }
 
     //Write inodes
     //8 inodes fit in 1 fs block
@@ -249,9 +254,12 @@ uint32 DfsAllocateBlock() {
 // Check that file system has been validly loaded into memory
 // Find the first free block using the free block vector (FBV), mark it in use
 // Return handle to block
+// ALSO: ZERO THE BLOCK.
     int blockFound = 0;
     int blockNum;
     int i = 0;
+    dfs_block b;
+    char bytes[DFS_BLOCKSIZE];
 
     dbprintf('z', "_DfsAllocateBlock\n");
 
@@ -275,6 +283,16 @@ uint32 DfsAllocateBlock() {
     } while(blockFound == 0);
 
     LockHandleRelease(fbvLock);
+
+    //I added this to try and stop my double indirect table from filling with garbage data, and this did not fix it.
+    //Which means the garbage data is being WRITTEN there at some point.
+
+    dbprintf('z', "DfsAllocateBlock: Zeroing newly allocated block %d.\n", blockNum);
+    bzero((char*)&b, DFS_BLOCKSIZE);
+    dbprintf('z', "DfsAllocateBlock: Calling DfsWriteBlock to zero block %d.\n", blockNum);
+    DfsWriteBlock(blockNum, &b);
+
+    SANITYCHECKPRINTDOUBLEINDIRECTTABLE(3);
 
     return blockNum;
 }
@@ -363,9 +381,7 @@ int DfsReadBlock(uint32 blocknum, dfs_block *b) {
         PrintCacheMissMessage(cacheStatistics_totalTimeSpentOnCacheMisses/cacheStatistics_NumMisses);
     }
     bcopy((char*)&bufferCache[cacheIndex], (char*)b, sb.fileSystemBlockSize);
-    LockHandleAcquire(bufferLock);
-    bufferCacheNumAccesses[cacheIndex]++;
-    LockHandleRelease(bufferLock);
+    IncrementCacheTimeSinceAccess(cacheIndex);
     return val;
 }
 
@@ -381,7 +397,14 @@ int DfsReadBlockUncached(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int val = 0;
 
+    dbprintf('z', "_DfsReadBlock: blocknum %d, *b\n", blocknum);
+
     if (sb.fileSystemValid != 1) {
+        return DFS_FAIL;
+    }
+
+    if (blocknum > 65535) {
+        dbprintf('z', "DfsReadBlock: ERROR. Tried to read fs block %d, which is larger than the max %d.\n", blocknum, 65535);
         return DFS_FAIL;
     }
 
@@ -457,8 +480,8 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
     }
 
     bcopy((char*)b, (char*)&bufferCache[cacheIndex], sb.fileSystemBlockSize);
+    IncrementCacheTimeSinceAccess(cacheIndex);
     LockHandleAcquire(bufferLock);
-    bufferCacheNumAccesses[cacheIndex]++;
     bufferCacheDirty[cacheIndex] = 1;
     LockHandleRelease(bufferLock);
     return val;
@@ -475,6 +498,8 @@ int DfsWriteBlock(uint32 blocknum, dfs_block *b) {
 int DfsWriteBlockUncached(uint32 blocknum, dfs_block *b) {
     disk_block blockArray[4];
     int bytesWritten = 0;
+
+    dbprintf('z', "_DfsWriteBlock: blocknum %d, *b\n", blocknum);
     
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -620,6 +645,7 @@ int DfsInodeDelete(uint32 handle) {
     dbprintf('z', "DfsInodeDelete: Checking if indirect table is in use, fs block %d\n", inodes[handle].indirectAddressTableBlockNumber);
     if (inodes[handle].indirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].indirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by indirect address table
+        dbprintf('z', "SANITY CHECK. DRB 11. block: %d\n", inodes[handle].indirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
         bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
         for (i = 0; i < 256; i++) {
@@ -636,10 +662,12 @@ int DfsInodeDelete(uint32 handle) {
     dbprintf('z', "DfsInodeDelete: Checking if double indirect table is in use, fs block %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
     if (inodes[handle].doubleIndirectAddressTableBlockNumber != 0 && CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) == 1) {
         //de-allocate all blocks pointed to by tables pointed to within double address table
+        dbprintf('z', "SANITY CHECK. DRB 10. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectBlock);
         bcopy((char*)&doubleIndirectBlock, (char*)doubleIndirectTable, DFS_BLOCKSIZE);
         for (i = 0; i < 256; i++) {
             if (doubleIndirectTable[i] != 0 && CheckIfBlockAllocatedInFBV(doubleIndirectTable[i])) {
+                dbprintf('z', "SANITY CHECK. DRB 9. block: %d\n", doubleIndirectTable[i]);
                 DfsReadBlock(doubleIndirectTable[i], &singleIndirectBlock);
                 bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
                 for (j = 0; j < 256; j++) {
@@ -726,7 +754,13 @@ int DfsInodeReadBytes(uint32 handle, void *mem, int start_byte, int num_bytes) {
             dbprintf('z', "DfsInodeWriteBytes: Allocating virtual block %d.\n", virtualBlockNumber);
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
+        fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
+        if (fileSysBlockNumber == DFS_FAIL) {
+            printf("DfsInodeReadBytes: ERROR. fileSysBlockNumber = -1.\n");
+            return DFS_FAIL;
+        }
         dbprintf('z', "DfsInodeReadBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d.\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
+        dbprintf('z', "SANITY CHECK. DRB 8. block: %d\n", fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsblock);
 
         //Now, actually do the reading!
@@ -767,7 +801,7 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
     int fileSysBlockNumber;
     dfs_block currDfsBlock;
 
-    dbprintf('z', "_DfsInodeWriteBytes: handle %d, mem 0x%x, start_byte %d, num_bytes %d\n", handle, mem, start_byte, num_bytes);
+    dbprintf('z', "_DfsInodeWriteBytes: handle %d, *mem, start_byte %d, num_bytes %d\n", handle, start_byte, num_bytes);
 
     if (sb.fileSystemValid != 1) {
         return DFS_FAIL;
@@ -800,7 +834,12 @@ int DfsInodeWriteBytes(uint32 handle, void *mem, int start_byte, int num_bytes) 
             DfsInodeAllocateVirtualBlock(handle, virtualBlockNumber);
         }
         fileSysBlockNumber = DfsInodeTranslateVirtualToFilesys(handle, virtualBlockNumber);
+        if (fileSysBlockNumber == DFS_FAIL) {
+            printf("DfsInodeWriteBytes: ERROR. fileSysBlockNumber = -1.\n");
+            return DFS_FAIL;
+        }
         dbprintf('z', "DfsInodeWriteBytes: While loop. start byte: %d, num bytes: %d, virtual block: %d, virtual offset: %d, fs block: %d\n", start_byte, num_bytes, virtualBlockNumber, virtualByteOffset, fileSysBlockNumber);
+        dbprintf('z', "SANITY CHECK. DRB 7. block: %d\n", fileSysBlockNumber);
         DfsReadBlock(fileSysBlockNumber, &currDfsBlock);
 
         //Now, actually do the writing!
@@ -866,7 +905,7 @@ uint32 DfsInodeFilesize(uint32 handle) {
 // block number on success.
 //-----------------------------------------------------------------
 
-uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
+uint32  DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     dfs_block doubleIndirectAddrBlock;
     dfs_block singleIndirectAddrBlock;
     uint32 doubleIndirectAddrTable[256];
@@ -904,6 +943,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             inodes[handle].indirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocated indirectAddressTable to fs block %d.\n", inodes[handle].indirectAddressTableBlockNumber);
         }
+        dbprintf('z', "SANITY CHECK. DRB 6. block: %d\n", inodes[handle].indirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectAddrBlock);
         bcopy((char*)&singleIndirectAddrBlock, (char*)singleIndirectAddrTable, DFS_BLOCKSIZE);
         if (singleIndirectAddrTable[virtual_blocknum - 10] != 0 && CheckIfBlockAllocatedInFBV(singleIndirectAddrTable[virtual_blocknum - 10]) == 1) {
@@ -919,18 +959,26 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
     else {
         //In second indirect table
         //Check if second indirect table is allocated yet
-        if (inodes[handle].doubleIndirectAddressTableBlockNumber == 0) {
+        dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocating a block in double indirect table. doubleIndirectBlockNum: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
+        //THIS IS NEVER EVER EVER EXECUTING. DOUBLEINDIRECTADDRESSTABLEBLOCKNUMBER IS JUST FRICKING 309 ALREADY. IT SHOULD START AS 0!!!!!!!!
+        if (inodes[handle].doubleIndirectAddressTableBlockNumber == 0 || CheckIfBlockAllocatedInFBV(inodes[handle].doubleIndirectAddressTableBlockNumber) != 1) {
             //If not allocated, need to allocate that first
             inodes[handle].doubleIndirectAddressTableBlockNumber = DfsAllocateBlock();
             dbprintf('z', "DfsInodeAllocateVirtualBlock: Allocated doubleIndirectAddressTable to fs block %d.\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         }
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(0);
+        dbprintf('z', "SANITY CHECK. DRB 5. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(1);
         bcopy((char*)&doubleIndirectAddrBlock, (char*)doubleIndirectAddrTable, DFS_BLOCKSIZE);
+        SANITYCHECKPRINTDOUBLEINDIRECTTABLE(2);
 
         indexWithinDoubleIndirectBlock = (virtual_blocknum - (256+10)) / 256;
         indexWithinSingleIndirectBlock = (virtual_blocknum - (256+10)) % 256;
+        dbprintf('z', "DfsInodeAllocateVirtualBlock: Calculated virtual blocknum to be in double table[%d][%d]\n", indexWithinDoubleIndirectBlock, indexWithinSingleIndirectBlock)
 
         //Check if second indirect table[] is allocated yet
+        dbprintf('z', "DfsInodeAllocateVirtualBlock: Checking if double indirect table[%d] has been allocated yet. %d = 0?\n", indexWithinDoubleIndirectBlock, doubleIndirectAddrTable[indexWithinDoubleIndirectBlock])
         if (doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] == 0) {
             //If not allocated, need to allocate that first
             doubleIndirectAddrTable[indexWithinDoubleIndirectBlock] = DfsAllocateBlock();
@@ -938,6 +986,7 @@ uint32 DfsInodeAllocateVirtualBlock(uint32 handle, uint32 virtual_blocknum) {
             bcopy((char*)doubleIndirectAddrTable, (char*)&doubleIndirectAddrBlock, DFS_BLOCKSIZE);
             DfsWriteBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectAddrBlock);
         }
+        dbprintf('z', "SANITY CHECK. DRB 4. block: %d\n", doubleIndirectAddrTable[indexWithinDoubleIndirectBlock]);
         DfsReadBlock(doubleIndirectAddrTable[indexWithinDoubleIndirectBlock], &singleIndirectAddrBlock);
         bcopy((char*)&singleIndirectAddrBlock, (char*)singleIndirectAddrTable, DFS_BLOCKSIZE);
 
@@ -986,6 +1035,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. direct address table [%d] not allocated. (virtual block num %d)\n", virtual_blocknum, virtual_blocknum);
             return DFS_FAIL;
         }
+        dbprintf('z', "DfsInodeTranslateVirtualToFilesys: Found in direct address table. Returning %d.\n", inodes[handle].directAddressTranslations[virtual_blocknum]);
         return inodes[handle].directAddressTranslations[virtual_blocknum];
     }
 
@@ -996,12 +1046,14 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table not allocated. (virtual block num %d\n", virtual_blocknum);
             return DFS_FAIL;
         }
+        dbprintf('z', "SANITY CHECK. DRB 3. block: %d\n", inodes[handle].indirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].indirectAddressTableBlockNumber, &singleIndirectBlock);
         bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
         if (singleIndirectTable[virtual_blocknum - 10] == 0 || CheckIfBlockAllocatedInFBV(singleIndirectTable[virtual_blocknum - 10]) != 1) {
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Indirect address table[%d] not allocated. (virtual block num %d)\n", virtual_blocknum - 10, virtual_blocknum);
             return DFS_FAIL;
         }
+        dbprintf('z', "DfsInodeTranslateVirtualToFilesys: Found in single indirect table. Returning %d.\n", singleIndirectTable[virtual_blocknum - 10]);
         return singleIndirectTable[virtual_blocknum - 10];
     }
 
@@ -1011,6 +1063,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table not allocated. (virtual block num %d)\n", virtual_blocknum);
             return DFS_FAIL;
         }
+        dbprintf('z', "SANITY CHECK. DRB 2. block: %d\n", inodes[handle].doubleIndirectAddressTableBlockNumber);
         DfsReadBlock(inodes[handle].doubleIndirectAddressTableBlockNumber, &doubleIndirectBlock);
         bcopy((char*)&doubleIndirectBlock, (char*)doubleIndirectTable, DFS_BLOCKSIZE);
 
@@ -1021,6 +1074,7 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table[%d] not allocated. (virtual block num %d)\n", indexWithinDoubleIndirectBlock, virtual_blocknum);
             return DFS_FAIL;
         }
+        dbprintf('z', "SANITY CHECK. DRB 1. block: %d\n", doubleIndirectTable[indexWithinDoubleIndirectBlock]);
         DfsReadBlock(doubleIndirectTable[indexWithinDoubleIndirectBlock], &singleIndirectBlock);
         bcopy((char*)&singleIndirectBlock, (char*)singleIndirectTable, DFS_BLOCKSIZE);
 
@@ -1028,11 +1082,16 @@ uint32 DfsInodeTranslateVirtualToFilesys(uint32 handle, uint32 virtual_blocknum)
             dbprintf('z', "DfsInodeTranslateVirtualToFilesys: ERROR. Double indirect address table[%d][%d] not allocated. (virtual block num %d)\n", indexWithinDoubleIndirectBlock, indexWithinSingleIndirectBlock, virtual_blocknum);
             return DFS_FAIL;
         }
+        dbprintf('z', "TranslateVirtToFilesys: Sanity Check: returning %d.\n", singleIndirectTable[indexWithinSingleIndirectBlock]);
         return singleIndirectTable[indexWithinSingleIndirectBlock];
     }
 }
 
 int CheckIfBlockAllocatedInFBV(uint32 blocknum) {
+    if (blocknum > 65535) {
+        dbprintf('z', "CheckIfBlockAllocatedInFBV: ERROR. Tried to read fs block %d, which is larger than the max %d.\n", blocknum, 65535);
+        return DFS_FAIL;
+    }
     if (fbv[blocknum / 32] & (0x1 << (blocknum % 32))) {
         return 1;
     }
@@ -1070,6 +1129,12 @@ int DfsCacheHit(int blocknum) {
         }
     }
     cacheStatistics_NumMisses++;
+    dbprintf('z', "DfsCacheHit: returning cache index %d for blocknum %d.\n", index, blocknum);
+    if (index != DFS_FAIL) {
+        LockHandleAcquire(bufferLock);
+        bufferCacheTimeSinceAccess[index] = 0;
+        LockHandleRelease(bufferLock);
+    }
     return index;
 }
 
@@ -1081,7 +1146,7 @@ disk.
 int DfsCacheAllocateSlot(int blocknum) {
     int i;
     int index = -1;
-    int lowest_found_num_accesses;
+    int highest_found_time_since_access;
     disk_block blockArray[4];
     int bytesWritten = 0;
 
@@ -1101,6 +1166,8 @@ int DfsCacheAllocateSlot(int blocknum) {
         if (bufferCacheBlockNums[i] == -1) {
             LockHandleAcquire(bufferLock);
             bufferCacheBlockNums[i] = blocknum;
+            bufferCacheDirty[i] = 0;
+            bufferCacheTimeSinceAccess[i] = 0;
             LockHandleRelease(bufferLock);
             dbprintf('z', "DfsCacheAllocateSlot: Allocating slot %d for blocknum %d.\n", i, blocknum);
             return i;
@@ -1109,32 +1176,33 @@ int DfsCacheAllocateSlot(int blocknum) {
 
     //No free block is available. Remove a block according to eviction policy. Write it back to disk if it is dirty.
     //CURRENT EVICTION POLICY: BLOCKS WHICH HAVE BEEN USED THE LEAST NUMBER OF TIMES
-    lowest_found_num_accesses = bufferCacheNumAccesses[0];
+    highest_found_time_since_access = bufferCacheTimeSinceAccess[0];
     index = 0;
     for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
-        if (bufferCacheNumAccesses[i] < lowest_found_num_accesses) {
-            lowest_found_num_accesses = bufferCacheNumAccesses[i];
+        if (bufferCacheTimeSinceAccess[i] > highest_found_time_since_access) {
+            highest_found_time_since_access = bufferCacheTimeSinceAccess[i];
             index = i;
         }
     }
-    dbprintf('z', "DfsCacheAllocateSlot: Evicting cache[%d] with %d accesses (dirty = %d).\n", index, bufferCacheNumAccesses[index], bufferCacheDirty[index]);
+    dbprintf('z', "DfsCacheAllocateSlot: Evicting cache[%d] with time %d since access (contained blocknum %d) (dirty = %d).\n", index, bufferCacheTimeSinceAccess[index], bufferCacheBlockNums[index], bufferCacheDirty[index]);
     if (bufferCacheDirty[index] == 1) {
         //Writeback!
         bcopy((char*)&bufferCache[index], (char*)blockArray, sb.fileSystemBlockSize);
-        bytesWritten += DiskWriteBlock(blocknum*4, &blockArray[0]);
-        bytesWritten += DiskWriteBlock(blocknum*4+1, &blockArray[1]);
-        bytesWritten += DiskWriteBlock(blocknum*4+2, &blockArray[2]);
-        bytesWritten += DiskWriteBlock(blocknum*4+3, &blockArray[3]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4, &blockArray[0]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+1, &blockArray[1]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+2, &blockArray[2]);
+        bytesWritten += DiskWriteBlock(bufferCacheBlockNums[index]*4+3, &blockArray[3]);
         cacheStatistics_NumDiskWrites++;
         SimulateDiskAccessTimeAndWait4MS();
         if (bytesWritten != sb.fileSystemBlockSize) {
             dbprintf('z', "DfsCacheAllocateSlot: ERROR. Tried to write dirty cache to disk. Tried to write %d bytes, but only wrote %d. (this is a non-terminating error)\n", sb.fileSystemBlockSize, bytesWritten);
         }
     }
+    dbprintf('z', "DfsCacheAllocateSlot: Allocating newly evicted slot %d for blocknum %d.\n", index, blocknum);
     LockHandleAcquire(bufferLock);
-    bufferCacheBlockNums[index] = -1;
+    bufferCacheBlockNums[index] = blocknum;
     bufferCacheDirty[index] = 0;
-    bufferCacheNumAccesses[index] = 0;
+    bufferCacheTimeSinceAccess[index] = 0;
     LockHandleRelease(bufferLock);
     return index;
 }
@@ -1163,6 +1231,7 @@ int DfsCacheFlush() {
             cacheStatistics_NumDiskWrites++;
             if(bytesWritten != sb.fileSystemBlockSize) {
                 dbprintf('z', "DfsCacheFlush: ERROR. Tried to write %d bytes, but only wrote %d.\n", sb.fileSystemBlockSize, bytesWritten);
+                return DFS_FAIL;
             }
         }
     }
@@ -1187,4 +1256,27 @@ void SimulateDiskAccessTimeAndWait4MS() {
         printf("%f - %f = %f\n", ClkGetCurTime(), startTime, ClkGetCurTime() - startTime);
     }
     */
+}
+
+void IncrementCacheTimeSinceAccess(int index) {
+    int i;
+    LockHandleAcquire(bufferLock);
+    for (i = 0; i < BUFFER_CACHE_SLOTS; i++) {
+        if (i != index) {
+            bufferCacheTimeSinceAccess[i]++;
+        }
+    }
+    LockHandleRelease(bufferLock);
+}
+
+void SANITYCHECKPRINTDOUBLEINDIRECTTABLE(int v) {
+    dfs_block d;
+    uint32 values[256];
+
+    if (inodes[0].doubleIndirectAddressTableBlockNumber == 0) {
+        return;
+    }
+    DfsReadBlock(inodes[0].doubleIndirectAddressTableBlockNumber, &d);
+    bcopy((char*)&d, (char*)values, DFS_BLOCKSIZE);
+    dbprintf('z', "*****SANITY CHECK %d: double[0] = %d, double[1] = %d, double [2] = %d*****\n", v, values[0], values[1], values[2]);
 }

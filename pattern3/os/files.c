@@ -25,6 +25,9 @@ int FileOpen(char *filename, char *mode) {
     int existingFileHandle = -1;
     int i, inode;
     int handle = -1;
+
+    dbprintf('z', "_FileOpen: filename %s, mode %c\n", filename, mode[0]);
+
     for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
         if (dstrncmp(files[i].fileName, filename, FILE_MAX_FILENAME_LENGTH) == 0) {
             //File found and already exists
@@ -41,7 +44,32 @@ int FileOpen(char *filename, char *mode) {
     }
     if (existingFileHandle == -1) {
         if ((inode = DfsInodeFilenameExists(filename)) != -1) {
-            dbprintf('z', "FileOpen (%d): File '%s' not found in files, but found at inode %d.\n", GetCurrentPid(), filename, inode);
+            dbprintf('z', "FileOpen (%d): File '%s' not found in files, but found at inode %d. Creating file.\n", GetCurrentPid(), filename, inode);
+            //Find unallocated handle
+            handle = -1;
+            for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
+                if (files[i].inUse == 0) {
+                    handle = i;
+                    break;
+                }
+            }
+            if (handle == -1) {
+                dbprintf('z', "FileOpen (%d): ERROR. No available file descriptors found. Too many files are in use.\n", GetCurrentPid());
+                return FILE_FAIL;
+            }
+            dbprintf('z', "FileOpen (%d): Opening new file '%s' at handle %d.\n", GetCurrentPid(), filename, handle);
+            LockHandleAcquire(fdLock);
+            files[handle].inUse = 1;
+            LockHandleRelease(fdLock);
+            files[handle].isOpen = 1;
+            dstrncpy(files[handle].fileName, filename, FILE_MAX_FILENAME_LENGTH);
+            files[handle].inode = inode;
+            files[handle].eof = 0;
+            files[handle].mode = mode[0];
+            files[handle].currentPosition = 0;
+            files[handle].processID = GetCurrentPid();
+            dbprintf('z', "FileOpen (%d): Done.\n", GetCurrentPid());
+            return handle;
         }
     }
     switch(mode[0]) {
@@ -55,6 +83,7 @@ int FileOpen(char *filename, char *mode) {
 
             files[existingFileHandle].mode = mode[0];
             files[existingFileHandle].processID = GetCurrentPid();
+            files[existingFileHandle].currentPosition = 0; //CRUCIAL FOR PROPER FUNCTION WITH PATTERN.C
             dbprintf('z', "FileOpen (%d): Opening file '%s' at handle %d for read.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
             return existingFileHandle;
         case 'w':
@@ -64,6 +93,7 @@ int FileOpen(char *filename, char *mode) {
                 dbprintf('z', "FileOpen (%d): Opening file '%s' at handle %d for write.\n", GetCurrentPid(), files[existingFileHandle].fileName, existingFileHandle);
                 DfsInodeDelete(files[existingFileHandle].inode);
                 files[existingFileHandle].inode = DfsInodeOpen(files[existingFileHandle].fileName);
+                files[existingFileHandle].currentPosition = 0; //JUST IN CASE???
                 dbprintf('z', "FileOpen (%d): Done.\n", GetCurrentPid());
                 return existingFileHandle;
             }
@@ -113,6 +143,9 @@ int FileOpen(char *filename, char *mode) {
 close the given file descriptor handle. Return FILE_FAIL on failure, and FILE_SUCCESS on success.
 */
 int FileClose(int handle) {
+
+    dbprintf('z', "_FileClose: handle %d\n", handle);
+
     if (files[handle].isOpen == 1) {
         dbprintf('z', "FileClose (%d): Closing file.\n", GetCurrentPid());
         files[handle].isOpen = 0;
@@ -133,6 +166,7 @@ file descriptor should be set.
 */
 int FileRead(int handle, void *mem, int num_bytes) {
     int bytesRead;
+    dbprintf('z', "_FileRead: handle %d, *mem, num_bytes %d\n", handle, num_bytes);
     // the maximum number of bytes that can be read or written at any time by the file functions is 4096 bytes. 
     // All of these functions should only allow the process that opened a given file to use the open file descriptor.
     // Error if file not opened in r mode.
@@ -187,6 +221,8 @@ int FileWrite(int handle, void *mem, int num_bytes) {
     // Error if file not opened in w or a mode
     int bytesWritten;
 
+    dbprintf('z', "_FileWrite: handle %d, *mem, num_bytes %d\n", handle, num_bytes);
+
     if (files[handle].inUse != 1) {
         dbprintf('z', "FileWrite (%d): ERROR. Tried to write to file '%s', which is not in use.\n", GetCurrentPid(), files[handle].fileName);
         return FILE_FAIL;
@@ -229,6 +265,9 @@ will clear the eof flag.
 */
 int FileSeek(int handle, int num_bytes, int from_where) {
     // Error if file not open
+
+    dbprintf('z', "_FileSeek: handle %d, num_bytes %d, from_where %d\n", handle, num_bytes, from_where);
+
     if (files[handle].isOpen != 1) {
         dbprintf('z', "FileSeek (%d): ERROR. File with handle %d is not open.\n", GetCurrentPid(), handle);
         return FILE_FAIL;
@@ -265,6 +304,9 @@ delete the file specified by filename. Return FILE_FAIL on failure, and FILE_SUC
 int FileDelete(char *filename) {
     int i;
     int handle = -1;
+
+    dbprintf('z', "_FileDelete: filename %s\n", filename);
+
     for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
         if (dstrncmp(files[i].fileName, filename, FILE_MAX_FILENAME_LENGTH) == 0) {
             if (handle != -1) {
@@ -308,6 +350,9 @@ rename a file; return fail if newname already exists.
 int FileRename(char *oldname, char *newname) {
     int i;
     int handle = -1;
+
+    dbprintf('z', "_FileRename: oldname %s, newname %s\n", oldname, newname);
+
     //Check if file with newname already exists.
     for (i = 0; i < FILE_MAX_OPEN_FILES; i++) {
         if (dstrncmp(files[i].fileName, newname, FILE_MAX_FILENAME_LENGTH) == 0) {

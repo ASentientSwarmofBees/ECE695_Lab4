@@ -14,7 +14,7 @@ TESTS = 1 -> tests disk functions (DfsAllocateBlock, DfsFreeBlock, DfsReadBlock,
 TESTS = 2 -> tests inode functions (DfsInodeOpen, DfsInodeWriteBytes, DfsInodeReadBytes, DfsInodeDelete, etc.)
 TESTS = 3 -> Same as test 2, but does not delete the inode afterwards.
 TESTS = 4 -> To be used in conjunction with Test 3. Tries to read the data which should still be present after Test 3.
-TESTS = 5 -> Same as test 2, but with a massive array size. *THIS CURRENTLY BREAKS THE FILE SYSTEM.* Need to re-execute fdisk.c and reset the disk after running this test to restore funcitonality.
+TESTS = 5 -> Same as test 2, but with a massive array size.
 TESTS = 6 -> Same as test 2, but with non block aligned values.
 Files edited: ostests.c, files.c, fdisk.c
 Sources referenced: https://stackoverflow.com/questions/348170/how-do-i-undo-git-add-before-commit
@@ -29,23 +29,23 @@ PART 6
 Notes: I'm co-opting the ostests user application to test my file systems. The app ostests.c file now has a constant which detemrines whether OS tests or user app file tests will be ran.
 if RUN_OS_TESTS = 0, user application file tests will run.
 if RUN_OS_TESTS = 1, OS tests will run.
-My user application file tests run two tests, both which open a file, write bytes, close the file, and then try to read the same data back. The two tests are the same, but the second test tests a much larger amount of data.
+My user application file tests run two tests, both which open a file, write bytes, close the file, and then try to read the same data back. The two tests are the same, but the second test uses a much larger amount of data.
 If an error happens where files are not correctly deleted, I was getting an error that said FileRename couldn't find a file with handle -1. When this happened, I reran fdisk and it fixed it. This bug shouldn't appear anymore now that I've fixed what was causing it, but just FYI if that error message shows up again, run fdisk.
 Files edited: apps/ostests/ostests/ostests.c, file.c
 
 PART 7
-Notes: I'm changing my code here to make sure that I mean the printing requirements for this project. I've changed all of my printfs to dbprintfs on the debug character 'z'.
+Notes: I'm changing my code here to make sure that I meet the printing requirements for this project. I've changed all of my printfs to dbprintfs on the debug character 'z'.
 By default, only the Cache Miss messages will print. To see all of my debug messages, change line 8 in apps/ostests/Makefile from:
 	cd ../../bin; dlxsim -x os.dlx.obj -a -D F -u ostests.dlx.obj; ee469_fixterminal
 to:
 	cd ../../bin; dlxsim -x os.dlx.obj -a -D zF -u ostests.dlx.obj; ee469_fixterminal
 The latency calculation in my "Cache Miss" print message does not work. I haven't gotten clock.c stuff to work.
-The eviction policy that I used for this part was tracking which block had been accessed the LEAST number of total times since it was first cached.
+The eviction policy that I used for this part was tracking which block hadn't been accessed for the longest amount of time.
+I'm having some glitches that only seem to happen when the disk is in a broken state. So, if things aren't working, go ahead and run fdisk once and try again, please.
 Files edited: dfs.c, files.c
 
 PART 8
-Notes: I realized my eviction policy for part 7 was very, very bad. I replaced it with LRU.
-I'm having another glitch that only seems to happen when the disk is in a broken state. So, if things aren't working, go ahead and run fdisk once and try again, please.
+Notes: I don't know how long this part is inteneded to take, but when I run pattern 1, it takes like 10+ minutes.
 Files edited: all files.c, all pattern.c, all dfs.c
 
 PART 9
